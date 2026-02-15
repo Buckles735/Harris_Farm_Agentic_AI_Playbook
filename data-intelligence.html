@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harris Farm — Data & Decision Intelligence Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+  :root{--dg:#1B4332;--mg:#2D6A4F;--lg:#40916C;--ac:#52B788;--go:#D4A843;--ow:#F5F7F0;--cr:#EDF2E4;--dt:#1A1A2E;--mu:#5A6B5D;--cb:#FFF;--rd:#E74C3C;--or:#F39C12;--bl:#3498DB}
+  *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--ow);color:var(--dt);min-height:100vh}
+  .app{display:flex;height:100vh}.sidebar{width:250px;background:var(--dg);color:#fff;display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar-header{padding:18px;border-bottom:1px solid rgba(255,255,255,.1)}.sidebar-header h1{font-family:'Playfair Display',serif;font-size:16px}.sidebar-header .sub{font-size:10px;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .nav-section{padding:6px 18px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:14px}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.65);transition:.15s;border-left:3px solid transparent}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}.nav-item.active{background:rgba(82,183,136,.15);color:var(--ac);border-left-color:var(--ac);font-weight:500}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{background:#fff;border-bottom:1px solid #e0e5d8;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+  .topbar h2{font-family:'Playfair Display',serif;font-size:18px;color:var(--dg)}
+  .topbar-right{display:flex;gap:8px;align-items:center}
+  .btn{padding:6px 14px;border-radius:5px;border:none;cursor:pointer;font-size:11px;font-weight:500;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+  .btn-p{background:var(--ac);color:#fff}.btn-p:hover{background:var(--lg)}.btn-o{background:transparent;border:1px solid #c8d0c0;color:var(--mu)}.btn-o:hover{border-color:var(--ac)}
+  select.sel{padding:6px 10px;border:1px solid #c8d0c0;border-radius:5px;font-size:11px;background:#fff}
+  .content{flex:1;overflow-y:auto;padding:20px 24px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  .card{background:#fff;border-radius:10px;padding:16px;border:1px solid #e0e5d8;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .card.g::before{background:var(--ac)}.card.y::before{background:var(--go)}.card.r::before{background:var(--rd)}.card.b::before{background:var(--bl)}
+  .card-label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .card-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--dg)}
+  .card-ch{font-size:10px;margin-top:3px}.up{color:var(--ac)}.dn{color:var(--rd)}
+  .panel{background:#fff;border-radius:10px;border:1px solid #e0e5d8;overflow:hidden;margin-bottom:16px}
+  .panel-h{padding:12px 16px;border-bottom:1px solid #e0e5d8;display:flex;align-items:center;justify-content:space-between}
+  .panel-t{font-weight:600;font-size:13px;color:var(--dg)}.panel-b{padding:14px 16px}
+  .row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2ec}.row:last-child{border-bottom:none}
+  .dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}.dot.h{background:var(--rd)}.dot.m{background:var(--or)}.dot.l{background:var(--ac)}
+  .row-c{flex:1}.row-t{font-size:12px;font-weight:500}.row-m{font-size:10px;color:var(--mu);margin-top:2px}
+  .badge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:500;white-space:nowrap}
+  .b-auto{background:#e8f5e9;color:var(--lg)}.b-review{background:#fef3e0;color:var(--or)}.b-alert{background:#fde8e8;color:var(--rd)}
+  /* Chat interface */
+  .chat-box{background:#fff;border:1px solid #e0e5d8;border-radius:10px;padding:16px;margin-bottom:16px}
+  .chat-input-area{display:flex;gap:8px;align-items:flex-end;margin-bottom:12px}
+  .chat-input{flex:1;padding:8px 12px;border:1px solid #c8d0c0;border-radius:5px;font-size:12px;font-family:'Inter',sans-serif}
+  .chat-input::placeholder{color:#aaa}
+  .chat-example{display:inline-block;padding:6px 10px;background:#f0f2ec;border-radius:5px;font-size:10px;color:var(--mu);margin-right:6px;margin-bottom:6px;cursor:pointer;transition:.15s}
+  .chat-example:hover{background:var(--cr);color:var(--dg)}
+  .chat-message{margin:10px 0;padding:10px 12px;border-radius:5px;background:#f8faf5;border-left:3px solid var(--ac)}
+  .chat-message.user{background:#e8f5e9;border-left-color:var(--ac)}
+  .chat-message.agent{background:#f8faf5;border-left-color:var(--lg)}
+  .chat-msg-time{font-size:9px;color:var(--mu);margin-top:4px}
+  .insight-card{background:linear-gradient(135deg,#e8f5e9 0%,#f8faf5 100%);border:1px solid #c8e6c9;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+  .insight-title{font-weight:600;font-size:12px;color:var(--dg);margin-bottom:4px}
+  .insight-desc{font-size:11px;color:var(--dt);margin-bottom:6px}
+  .insight-meta{display:flex;gap:8px;font-size:9px;color:var(--mu)}.insight-conf{color:var(--ac);font-weight:600}
+  .insight-action{display:inline-block;font-size:10px;color:var(--ac);cursor:pointer;text-decoration:underline;margin-top:6px}
+  .briefing-section{margin-bottom:16px}
+  .briefing-section h4{font-size:12px;font-weight:600;color:var(--dg);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px}
+  .system-card{background:#fff;border:1px solid #e0e5d8;border-radius:8px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px}
+  .system-status{width:40px;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .system-status.connected{background:#e8f5e9}.system-status.warning{background:#fef3e0}
+  .system-info{flex:1}
+  .system-name{font-weight:600;font-size:12px;color:var(--dg)}
+  .system-detail{font-size:10px;color:var(--mu);margin-top:2px}
+  .system-meta{display:flex;gap:8px;font-size:9px;color:var(--mu);margin-top:4px}
+  .system-meta .badge{padding:1px 5px;margin:0;background:#f0f2ec}
+  /* Query table */
+  .query-table{width:100%;border-collapse:collapse;font-size:11px}
+  .query-table th{text-align:left;padding:8px 10px;background:var(--cr);color:var(--dg);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+  .query-table td{padding:8px 10px;border-bottom:1px solid #f0f2ec}
+  .query-table tr:hover{background:#f8faf5}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);margin-right:4px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .alert{background:linear-gradient(135deg,#e8f5e9 0%,#fef3e0 100%);border:1px solid #c8e6c9;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .alert-icon{font-size:18px}.alert-c h4{font-size:12px;color:var(--dt)}.alert-c p{font-size:11px;color:var(--mu);margin-top:2px}
+  .alert-a{margin-left:auto;display:flex;gap:6px}
+  .back-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);text-decoration:none;margin-bottom:12px}.back-link:hover{color:var(--dg)}
+  /* Data table */
+  .data-table{width:100%;border-collapse:collapse;font-size:11px}
+  .data-table th{text-align:left;padding:8px 10px;background:var(--cr);color:var(--dg);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+  .data-table td{padding:8px 10px;border-bottom:1px solid #f0f2ec}
+  .data-table tr:hover{background:#f8faf5}
+  .metric{font-weight:600;color:var(--dg)}
+  .metric.pos{color:var(--ac)}.metric.neg{color:var(--rd)}
+  @media(max-width:900px){.sidebar{display:none}.grid4,.grid3{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><h1>Harris Farm</h1><div class="sub">Data Intelligence Agent</div></div>
+    <div class="nav-section">Dashboard</div>
+    <div class="nav-item active" onclick="showV('overview')">📊 Overview</div>
+    <div class="nav-item" onclick="showV('ask')">💬 Ask Anything</div>
+    <div class="nav-item" onclick="showV('briefing')">📋 Daily Briefing</div>
+    <div class="nav-item" onclick="showV('systems')">⚙️ Connected Systems</div>
+    <div class="nav-item" onclick="showV('insights')">💡 Proactive Insights</div>
+    <div class="nav-section">Links</div>
+    <a href="/prototype.html" class="nav-item" style="text-decoration:none;color:inherit">🏠 Command Centre</a>
+    <a href="/" class="nav-item" style="text-decoration:none;color:inherit">← Back to Hub</a>
+    <div style="margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.4)"><span class="status-dot"></span> Connected to 5 systems • 2.4M data points analysed</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="vTitle">Data & Decision Intelligence Dashboard</h2>
+      <div class="topbar-right">
+        <button class="btn btn-o" onclick="this.textContent='↻ Refreshing...';setTimeout(()=>this.textContent='↻ Refresh',800)">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div id="v-overview">
+        <div class="alert">
+          <span class="alert-icon">🔍</span>
+          <div class="alert-c"><h4>New Insight: Redfern Store Margin Declining</h4><p>Agent detected 3% month-over-month margin compression at Redfern store. Recommended investigation into pricing strategy and supplier costs. DataRobot model flagged as high confidence.</p></div>
+          <div class="alert-a"><button class="btn btn-o" onclick="this.closest('.alert').style.display='none'">Dismiss</button><button class="btn btn-p" onclick="showV('insights')">Review Insights</button></div>
+        </div>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Queries Answered Today</div><div class="card-val">89</div><div class="card-ch up">↑ 12 vs. yesterday</div></div>
+          <div class="card y"><div class="card-label">Reports Auto-Generated</div><div class="card-val">12</div><div class="card-ch up">Leadership briefings</div></div>
+          <div class="card b"><div class="card-label">Insights Surfaced</div><div class="card-val">7</div><div class="card-ch up">New patterns detected</div></div>
+          <div class="card g"><div class="card-label">Systems Connected</div><div class="card-val">5</div><div class="card-ch up">All active & syncing</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🤖 Natural Language Query Box</span></div>
+          <div class="panel-b">
+            <div class="chat-input-area">
+              <input type="text" class="chat-input" placeholder="Ask any business question in plain English..." value="">
+              <button class="btn btn-p" onclick="simulateQuery()">Send</button>
+            </div>
+            <div style="margin-top:10px">
+              <div style="font-size:10px;color:var(--mu);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px">Try asking:</div>
+              <div class="chat-example" onclick="setQuery('What\\'s our margin trend in QLD stores this month?')">Margin trend QLD</div>
+              <div class="chat-example" onclick="setQuery('Which store has the highest waste this week?')">Highest waste</div>
+              <div class="chat-example" onclick="setQuery('Compare weekend foot traffic across all stores')">Foot traffic comparison</div>
+              <div class="chat-example" onclick="setQuery('What were our top 10 selling products last month?')">Top products</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📝 Recent Queries & Answers</span></div>
+          <div class="panel-b">
+            <table class="query-table">
+              <thead><tr><th>Query</th><th>Answer Summary</th><th>Time</th><th>Confidence</th></tr></thead>
+              <tbody>
+                <tr><td><strong>What's our margin trend in QLD stores?</strong></td><td>QLD stores showing 2.1% decline MoM, primarily due to competitive pricing at Brisbane CBD location</td><td>2 min ago</td><td><span class="badge b-auto">High</span></td></tr>
+                <tr><td><strong>Which store has the highest waste?</strong></td><td>Willoughby store reporting 12.3% waste on fresh produce this week, significantly above 6.8% average</td><td>15 min ago</td><td><span class="badge b-auto">High</span></td></tr>
+                <tr><td><strong>Weekend foot traffic analysis</strong></td><td>Sydney metro stores average 18% higher foot traffic on weekends; Surry Hills +24%, Drummoyne +19%</td><td>28 min ago</td><td><span class="badge b-auto">High</span></td></tr>
+                <tr><td><strong>Top performing product category</strong></td><td>Organic produce showing strongest growth (+14% YoY). Top SKU: Organic bananas (+28% vs. conventional)</td><td>1 hr ago</td><td><span class="badge b-auto">High</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ASK ANYTHING -->
+      <div id="v-ask" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">💬 Chat with the Intelligence Agent</span></div>
+          <div class="panel-b">
+            <div class="chat-input-area">
+              <input type="text" id="askInput" class="chat-input" placeholder="Type your business question in natural language...">
+              <button class="btn btn-p" onclick="sendAskQuery()">Send</button>
+            </div>
+            <div style="margin-top:12px;padding:12px;background:#f8faf5;border-radius:6px;border-left:3px solid var(--ac)">
+              <div style="font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">Example questions you can ask:</div>
+              <div class="chat-example" onclick="document.getElementById('askInput').value='What\\'s our margin trend in QLD stores this month?';sendAskQuery()" style="cursor:pointer">What's our margin trend in QLD stores this month?</div>
+              <div class="chat-example" onclick="document.getElementById('askInput').value='Which store has the highest waste this week?';sendAskQuery()" style="cursor:pointer">Which store has the highest waste this week?</div>
+              <div class="chat-example" onclick="document.getElementById('askInput').value='Compare weekend foot traffic across all stores';sendAskQuery()" style="cursor:pointer">Compare weekend foot traffic across all stores</div>
+              <div class="chat-example" onclick="document.getElementById('askInput').value='What were our top 10 selling products last month?';sendAskQuery()" style="cursor:pointer">What were our top 10 selling products last month?</div>
+              <div class="chat-example" onclick="document.getElementById('askInput').value='How is Redfern store performing vs. network average?';sendAskQuery()" style="cursor:pointer">How is Redfern store performing vs. network average?</div>
+              <div class="chat-example" onclick="document.getElementById('askInput').value='What factors are driving the Brisbane CBD success?';sendAskQuery()" style="cursor:pointer">What factors are driving the Brisbane CBD success?</div>
+            </div>
+            <div id="chatDisplay" style="margin-top:16px;max-height:400px;overflow-y:auto">
+              <div class="chat-message user">
+                <strong>You:</strong> What's our margin trend in QLD stores this month?
+                <div class="chat-msg-time">2 min ago</div>
+              </div>
+              <div class="chat-message agent">
+                <strong>Intelligence Agent:</strong>
+                <div style="margin-top:8px">QLD stores are showing a <span class="metric neg">2.1% margin decline</span> month-over-month. This is primarily driven by competitive pricing pressure at our Brisbane CBD location, where we've seen aggressive discounting from rival chains.</div>
+                <table class="data-table" style="margin-top:8px">
+                  <thead><tr><th>Store</th><th>Margin Trend</th><th>Key Factor</th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>Brisbane CBD</strong></td><td><span class="metric neg">-3.2%</span></td><td>Competitive pricing</td></tr>
+                    <tr><td><strong>Surry Hills</strong></td><td><span class="metric pos">+1.8%</span></td><td>Organic range growth</td></tr>
+                    <tr><td><strong>Redfern</strong></td><td><span class="metric neg">-2.9%</span></td><td>Higher supplier costs</td></tr>
+                  </tbody>
+                </table>
+                <div style="margin-top:8px;font-size:11px;color:var(--mu)"><strong>Recommendation:</strong> Review supplier contracts at Redfern and Brisbane CBD; consider promotional bundle strategy to offset margin compression.</div>
+                <div class="chat-msg-time">Data sources: Dynamics NAV (ERP), POS, DataRobot models</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DAILY BRIEFING -->
+      <div id="v-briefing" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="alert">
+          <span class="alert-icon">📋</span>
+          <div class="alert-c"><h4>Leadership Briefing — Saturday, 15 February 2025</h4><p>Auto-generated morning report for executives. All data refreshed at 6:00 AM from connected systems.</p></div>
+        </div>
+
+        <div class="panel">
+          <div class="briefing-section">
+            <h4>💰 Revenue Summary</h4>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <div style="background:#f8faf5;padding:12px;border-radius:6px">
+                <div style="font-size:10px;color:var(--mu);margin-bottom:4px">Today YTD Revenue</div>
+                <div style="font-size:18px;font-weight:700;color:var(--dg)">$847K</div>
+                <div style="font-size:10px;color:var(--ac);margin-top:4px">↑ 8.3% vs. same day last year</div>
+              </div>
+              <div style="background:#f8faf5;padding:12px;border-radius:6px">
+                <div style="font-size:10px;color:var(--mu);margin-bottom:4px">Network Average Margin</div>
+                <div style="font-size:18px;font-weight:700;color:var(--dg)">18.4%</div>
+                <div style="font-size:10px;color:var(--rd);margin-top:4px">↓ 0.8% vs. last week</div>
+              </div>
+              <div style="background:#f8faf5;padding:12px;border-radius:6px">
+                <div style="font-size:10px;color:var(--mu);margin-bottom:4px">Inventory Health</div>
+                <div style="font-size:18px;font-weight:700;color:var(--dg)">$2.1M</div>
+                <div style="font-size:10px;color:var(--ac);margin-top:4px">↑ Optimized via AI ordering</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="briefing-section">
+            <h4>🏆 Top Performing Stores (by Revenue YTD)</h4>
+            <table class="data-table">
+              <thead><tr><th>Rank</th><th>Store</th><th>Revenue</th><th>Margin</th><th>Growth</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td><strong>Brisbane CBD</strong></td><td>$124K</td><td>19.2%</td><td><span class="metric pos">+12.1%</span></td></tr>
+                <tr><td>2</td><td><strong>Surry Hills</strong></td><td>$118K</td><td>20.1%</td><td><span class="metric pos">+9.8%</span></td></tr>
+                <tr><td>3</td><td><strong>Drummoyne</strong></td><td>$112K</td><td>18.7%</td><td><span class="metric pos">+6.3%</span></td></tr>
+                <tr><td>4</td><td><strong>Leichhardt</strong></td><td>$108K</td><td>17.9%</td><td><span class="metric pos">+4.2%</span></td></tr>
+                <tr><td>5</td><td><strong>Miranda</strong></td><td>$102K</td><td>16.8%</td><td><span class="metric pos">+2.1%</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="briefing-section">
+            <h4>⚠️ Key Alerts & Exceptions</h4>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:#fde8e8;border-left:3px solid #e74c3c;padding:10px;border-radius:5px">
+                <div style="font-weight:600;font-size:12px;color:#c0392b">Redfern Store — Margin Compression Alert</div>
+                <div style="font-size:11px;color:var(--dt);margin-top:4px">Margin declined 3% MoM. Root cause: Higher supplier costs (+4%) and competitive pricing pressure. Recommended: Review supplier contracts and promotional strategy.</div>
+              </div>
+              <div style="background:#fef3e0;border-left:3px solid #f39c12;padding:10px;border-radius:5px">
+                <div style="font-weight:600;font-size:12px;color:#d68910">Willoughby Store — Waste Spike</div>
+                <div style="font-size:11px;color:var(--dt);margin-top:4px">Fresh produce waste at 12.3% (vs. 6.8% network average). Cause: Overstocking in fresh herbs category. Action: Adjust demand forecasts and reduce order quantities.</div>
+              </div>
+              <div style="background:#fef3e0;border-left:3px solid #f39c12;padding:10px;border-radius:5px">
+                <div style="font-weight:600;font-size:12px;color:#d68910">Weekend Staffing — Efficiency Concern</div>
+                <div style="font-size:11px;color:var(--dt);margin-top:4px">Tuesday afternoons consistently 18% overstaffed across metro stores. Recommendation: Review shift patterns and reallocate to higher-demand periods.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="briefing-section">
+            <h4>🤖 Agent Highlights (What the AI Discovered)</h4>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:#e8f5e9;padding:10px;border-radius:6px;border-left:3px solid var(--ac)">
+                <div style="font-size:11px;color:var(--dg);font-weight:600">Organic Range Momentum</div>
+                <div style="font-size:10px;color:var(--dt);margin-top:4px">Organic produce category growing 14% YoY. Organic bananas (+28%) outpacing conventional lines. Recommendation: Expand organic range, especially in Brisbane CBD and Surry Hills stores.</div>
+              </div>
+              <div style="background:#e8f5e9;padding:10px;border-radius:6px;border-left:3px solid var(--ac)">
+                <div style="font-size:11px;color:var(--dg);font-weight:600">Weekend Traffic Patterns</div>
+                <div style="font-size:10px;color:var(--dt);margin-top:4px">Sydney metro stores averaging 18% higher foot traffic on weekends. Surry Hills leading with +24%. Action: Stock premium SKUs and promotional items for weekend peak.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="briefing-section">
+            <h4>🌤️ Weather & Event Outlook (Next 7 Days)</h4>
+            <div style="background:#f8faf5;padding:10px;border-radius:6px;border-left:3px solid var(--lg)">
+              <div style="font-size:11px;margin-bottom:6px"><strong>Mon-Tue:</strong> Mild (18-22°C) — Normal demand patterns expected</div>
+              <div style="font-size:11px;margin-bottom:6px"><strong>Wed-Thu:</strong> Rain forecast — +12% soup/comfort foods expected, +8% root vegetables</div>
+              <div style="font-size:11px;margin-bottom:6px"><strong>Fri-Sun:</strong> Sunny, warming to 28-32°C — BBQ category +22%, fruit sales +18% projected</div>
+              <div style="font-size:11px;margin-top:8px"><strong>Events:</strong> Mardi Gras weekend approaching (22 Feb) — +18% foot traffic expected at Surry Hills, Redfern, Darlinghurst stores</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONNECTED SYSTEMS -->
+      <div id="v-systems" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="alert">
+          <span class="alert-icon">✅</span>
+          <div class="alert-c"><h4>All Systems Connected & Healthy</h4><p>5 data sources actively syncing. Latest sync completed 2 minutes ago. Total records analysed: 2.4M across all systems.</p></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">⚙️ Data Source Status</span></div>
+          <div class="panel-b">
+            <div class="system-card">
+              <div class="system-status connected">🤖</div>
+              <div class="system-info">
+                <div class="system-name">DataRobot (Demand & Analytics Models)</div>
+                <div class="system-detail">Machine learning models for forecasting, anomaly detection, and pattern recognition</div>
+                <div class="system-meta">
+                  <span>Records: 542K</span>
+                  <span>Last sync: 2 min ago</span>
+                  <span><span class="badge" style="background:#e8f5e9;color:var(--lg)">Active</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="system-card">
+              <div class="system-status connected">👥</div>
+              <div class="system-info">
+                <div class="system-name">Dayforce (Workforce Management)</div>
+                <div class="system-detail">Employee scheduling, payroll, attendance, and labour metrics</div>
+                <div class="system-meta">
+                  <span>Records: 418K</span>
+                  <span>Last sync: 3 min ago</span>
+                  <span><span class="badge" style="background:#e8f5e9;color:var(--lg)">Active</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="system-card">
+              <div class="system-status connected">📊</div>
+              <div class="system-info">
+                <div class="system-name">Dynamics NAV (ERP & Financials)</div>
+                <div class="system-detail">Enterprise resource planning, inventory, purchases, and financial accounting</div>
+                <div class="system-meta">
+                  <span>Records: 891K</span>
+                  <span>Last sync: 1 min ago</span>
+                  <span><span class="badge" style="background:#e8f5e9;color:var(--lg)">Active</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="system-card">
+              <div class="system-status connected">📦</div>
+              <div class="system-info">
+                <div class="system-name">Amazon (Online Orders & Fulfillment)</div>
+                <div class="system-detail">E-commerce sales, inventory, orders, and fulfillment metrics</div>
+                <div class="system-meta">
+                  <span>Records: 312K</span>
+                  <span>Last sync: 4 min ago</span>
+                  <span><span class="badge" style="background:#e8f5e9;color:var(--lg)">Active</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="system-card">
+              <div class="system-status connected">🛒</div>
+              <div class="system-info">
+                <div class="system-name">POS (Point of Sale & In-Store)</div>
+                <div class="system-detail">Transaction data, in-store sales, customer behaviour, and inventory movements</div>
+                <div class="system-meta">
+                  <span>Records: 241K</span>
+                  <span>Last sync: 2 min ago</span>
+                  <span><span class="badge" style="background:#e8f5e9;color:var(--lg)">Active</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📈 Integration Health Summary</span></div>
+          <div class="panel-b">
+            <table class="query-table">
+              <thead><tr><th>System</th><th>Data Freshness</th><th>Sync Success Rate</th><th>Records Synced (Today)</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><strong>DataRobot</strong></td><td>2 min ago</td><td>99.8%</td><td>18,420</td><td><span class="badge b-auto">Excellent</span></td></tr>
+                <tr><td><strong>Dayforce</strong></td><td>3 min ago</td><td>99.5%</td><td>12,840</td><td><span class="badge b-auto">Excellent</span></td></tr>
+                <tr><td><strong>Dynamics NAV</strong></td><td>1 min ago</td><td>99.9%</td><td>31,260</td><td><span class="badge b-auto">Excellent</span></td></tr>
+                <tr><td><strong>Amazon</strong></td><td>4 min ago</td><td>98.2%</td><td>8,150</td><td><span class="badge b-auto">Good</span></td></tr>
+                <tr><td><strong>POS</strong></td><td>2 min ago</td><td>99.7%</td><td>24,580</td><td><span class="badge b-auto">Excellent</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROACTIVE INSIGHTS -->
+      <div id="v-insights" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="alert">
+          <span class="alert-icon">💡</span>
+          <div class="alert-c"><h4>AI-Discovered Insights</h4><p>The Intelligence Agent has identified 6 actionable patterns. Review confidence scores and recommended actions below.</p></div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-title">1. Redfern Store Margin Declining 3% MoM</div>
+          <div class="insight-desc">Margin compression at Redfern store is accelerating. Root cause analysis identifies supplier cost inflation (+4%) and competitive pricing pressure. This trend, if unchecked, could reduce store profitability by $18K monthly.</div>
+          <div class="insight-meta">
+            <span>Data source: Dynamics NAV (financials) + POS (pricing)</span>
+            <span class="insight-conf">Confidence: 94%</span>
+          </div>
+          <div class="insight-action" onclick="alert('Recommended action: Review supplier contracts, benchmark competitor pricing, consider promotional bundling strategy to offset margin compression.')">View recommended action →</div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-title">2. Brisbane CBD Showing Fastest Growth — Consider Expanded Range</div>
+          <div class="insight-desc">Brisbane CBD store is the network's growth leader with +12.1% YoY revenue growth and 19.2% margins. Strong performance across premium and organic categories suggests opportunity for range expansion and higher-margin SKU introduction.</div>
+          <div class="insight-meta">
+            <span>Data source: POS (sales) + DataRobot (growth models)</span>
+            <span class="insight-conf">Confidence: 91%</span>
+          </div>
+          <div class="insight-action" onclick="alert('Recommended action: Expand premium organic range at Brisbane CBD; test new international specialty items; increase shelf space allocation.')">View recommended action →</div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-title">3. Tuesday Afternoons Consistently Overstaffed Across Metro Stores</div>
+          <div class="insight-desc">Analysis of Dayforce scheduling data shows Tuesday afternoon shifts are 18% overstaffed on average across Sydney metro locations. This pattern has persisted for 8 weeks and represents unnecessary labour cost of ~$8,400/week network-wide.</div>
+          <div class="insight-meta">
+            <span>Data source: Dayforce (scheduling) + POS (transaction volume)</span>
+            <span class="insight-conf">Confidence: 87%</span>
+          </div>
+          <div class="insight-action" onclick="alert('Recommended action: Rebalance Tuesday afternoon shifts; reallocate staff to Friday-Sunday peak periods; target labour cost savings of $35K/month.')">View recommended action →</div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-title">4. Willoughby Store Waste Spike in Fresh Herbs Category</div>
+          <div class="insight-desc">Willoughby store reporting 12.3% waste on fresh produce (vs. 6.8% network average). Root cause: Over-ordering in fresh herbs category (+35% vs. typical volumes). DataRobot demand model not capturing local consumption patterns accurately.</div>
+          <div class="insight-meta">
+            <span>Data source: Dynamics NAV (waste tracking) + DataRobot (demand forecast)</span>
+            <span class="insight-conf">Confidence: 89%</span>
+          </div>
+          <div class="insight-action" onclick="alert('Recommended action: Adjust Willoughby demand forecasts for herbs; implement automated waste alerts; potential recovery of $2,800 weekly.')">View recommended action →</div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-title">5. Organic Product Category Momentum — Fastest Growing Segment</div>
+          <div class="insight-desc">Organic produce growing at 14% YoY (vs. 4.2% conventional baseline). Organic bananas leading with +28% growth. Strong signal across multiple stores and consistent with trend data showing health/wellness consciousness in customer base.</div>
+          <div class="insight-meta">
+            <span>Data source: POS (category sales) + Amazon (online trends)</span>
+            <span class="insight-conf">Confidence: 93%</span>
+          </div>
+          <div class="insight-action" onclick="alert('Recommended action: Prioritize organic range expansion; dedicate premium shelf space; launch organic-focused marketing campaign; target 20% category growth.')">View recommended action →</div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-title">6. Weekend Foot Traffic Premium — Optimize Inventory & Staffing</div>
+          <div class="insight-desc">Sydney metro stores show consistent 18% higher foot traffic on weekends. Surry Hills peaks at +24%. This pattern is stable and provides opportunity to optimize inventory positioning and staffing for premium/promotional items.</div>
+          <div class="insight-meta">
+            <span>Data source: POS (transaction count) + Dayforce (store traffic data)</span>
+            <span class="insight-conf">Confidence: 95%</span>
+          </div>
+          <div class="insight-action" onclick="alert('Recommended action: Pre-position premium SKUs for weekend; increase staffing Fri-Sun; launch weekend-exclusive promotions; drive incremental revenue of $12K/week.')">View recommended action →</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+function showV(v){
+  ['overview','ask','briefing','systems','insights'].forEach(x=>{const e=document.getElementById('v-'+x);if(e)e.style.display=x===v?'block':'none'});
+  const titles={overview:'Data & Decision Intelligence Dashboard',ask:'Ask Anything',briefing:'Daily Briefing',systems:'Connected Systems',insights:'Proactive Insights'};
+  document.getElementById('vTitle').textContent=titles[v]||'Dashboard';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navItems=document.querySelectorAll('.sidebar .nav-item:not([style*="text-decoration"])');
+  const idx={overview:0,ask:1,briefing:2,systems:3,insights:4};
+  if(idx[v]!==undefined&&navItems[idx[v]]){navItems[idx[v]].classList.add('active')}
+}
+function setQuery(q){
+  document.querySelector('.chat-input').value=q;
+}
+function simulateQuery(){
+  const input=document.querySelector('.chat-input');
+  if(input.value.trim()){
+    alert('Query: '+input.value+'\n\nIn a live system, this would send to the Intelligence Agent backend and return rich answers with data, charts, and recommendations.');
+    input.value='';
+  }
+}
+function sendAskQuery(){
+  const input=document.getElementById('askInput');
+  if(input.value.trim()){
+    const msg=input.value;
+    const chatDisplay=document.getElementById('chatDisplay');
+    const userMsg=document.createElement('div');
+    userMsg.className='chat-message user';
+    userMsg.innerHTML='<strong>You:</strong> '+msg+'<div class="chat-msg-time">just now</div>';
+    chatDisplay.appendChild(userMsg);
+    chatDisplay.scrollTop=chatDisplay.scrollHeight;
+    input.value='';
+    setTimeout(()=>{
+      const agentMsg=document.createElement('div');
+      agentMsg.className='chat-message agent';
+      agentMsg.innerHTML='<strong>Intelligence Agent:</strong><div style="margin-top:8px">Processing your query across DataRobot, Dayforce, Dynamics NAV, Amazon, and POS systems... In a live deployment, this would return detailed analysis with supporting data tables, metrics, confidence scores, and recommended actions.</div><div class="chat-msg-time">now</div>';
+      chatDisplay.appendChild(agentMsg);
+      chatDisplay.scrollTop=chatDisplay.scrollHeight;
+    },600);
+  }
+}
+</script>
+</body>
+</html>

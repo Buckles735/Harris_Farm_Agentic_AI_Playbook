@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harris Farm — Waste Reduction & Markdown Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+  :root{--dg:#1B4332;--mg:#2D6A4F;--lg:#40916C;--ac:#52B788;--go:#D4A843;--ow:#F5F7F0;--cr:#EDF2E4;--dt:#1A1A2E;--mu:#5A6B5D;--cb:#FFF;--rd:#E74C3C;--or:#F39C12;--bl:#3498DB}
+  *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--ow);color:var(--dt);min-height:100vh}
+  .app{display:flex;height:100vh}.sidebar{width:250px;background:var(--dg);color:#fff;display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar-header{padding:18px;border-bottom:1px solid rgba(255,255,255,.1)}.sidebar-header h1{font-family:'Playfair Display',serif;font-size:16px}.sidebar-header .sub{font-size:10px;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .nav-section{padding:6px 18px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:14px}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.65);transition:.15s;border-left:3px solid transparent}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}.nav-item.active{background:rgba(82,183,136,.15);color:var(--ac);border-left-color:var(--ac);font-weight:500}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{background:#fff;border-bottom:1px solid #e0e5d8;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+  .topbar h2{font-family:'Playfair Display',serif;font-size:18px;color:var(--dg)}
+  .topbar-right{display:flex;gap:8px;align-items:center}
+  .btn{padding:6px 14px;border-radius:5px;border:none;cursor:pointer;font-size:11px;font-weight:500;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+  .btn-p{background:var(--ac);color:#fff}.btn-p:hover{background:var(--lg)}.btn-o{background:transparent;border:1px solid #c8d0c0;color:var(--mu)}.btn-o:hover{border-color:var(--ac)}
+  select.sel{padding:6px 10px;border:1px solid #c8d0c0;border-radius:5px;font-size:11px;background:#fff}
+  .content{flex:1;overflow-y:auto;padding:20px 24px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  .card{background:#fff;border-radius:10px;padding:16px;border:1px solid #e0e5d8;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .card.g::before{background:var(--ac)}.card.y::before{background:var(--go)}.card.r::before{background:var(--rd)}.card.b::before{background:var(--bl)}
+  .card-label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .card-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--dg)}
+  .card-ch{font-size:10px;margin-top:3px}.up{color:var(--ac)}.dn{color:var(--rd)}
+  .panel{background:#fff;border-radius:10px;border:1px solid #e0e5d8;overflow:hidden;margin-bottom:16px}
+  .panel-h{padding:12px 16px;border-bottom:1px solid #e0e5d8;display:flex;align-items:center;justify-content:space-between}
+  .panel-t{font-weight:600;font-size:13px;color:var(--dg)}.panel-b{padding:14px 16px}
+  .row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2ec}.row:last-child{border-bottom:none}
+  .dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}.dot.h{background:var(--rd)}.dot.m{background:var(--or)}.dot.l{background:var(--ac)}
+  .row-c{flex:1}.row-t{font-size:12px;font-weight:500}.row-m{font-size:10px;color:var(--mu);margin-top:2px}
+  .badge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:500;white-space:nowrap}
+  .b-auto{background:#e8f5e9;color:var(--lg)}.b-review{background:#fef3e0;color:var(--or)}.b-alert{background:#fde8e8;color:var(--rd)}.b-green{background:#e8f5e9;color:var(--lg)}
+  /* Charts & Waste Bars */
+  .chart-container{height:200px;display:flex;align-items:flex-end;gap:6px;padding:10px 0}
+  .chart-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .chart-bar-stack{display:flex;gap:2px;align-items:flex-end;width:100%;height:160px}
+  .chart-bar{border-radius:3px 3px 0 0;flex:1;display:flex;align-items:flex-start;justify-content:center;font-size:8px;color:#fff;padding-top:3px;min-width:16px}
+  .chart-bar.waste-veg{background:#D4A843}.chart-bar.waste-fruit{background:#52B788}.chart-bar.waste-meat{background:#E74C3C}.chart-bar.waste-dairy{background:#3498DB}.chart-bar.waste-other{background:#95a5a6}
+  .chart-label{font-size:9px;color:var(--mu)}
+  .legend{display:flex;gap:14px;margin:8px 0;justify-content:center;flex-wrap:wrap}.legend-i{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mu)}
+  .legend-d{width:8px;height:8px;border-radius:2px}
+  /* Tables */
+  .f-table{width:100%;border-collapse:collapse;font-size:11px}
+  .f-table th{text-align:left;padding:8px 10px;background:var(--cr);color:var(--dg);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+  .f-table td{padding:8px 10px;border-bottom:1px solid #f0f2ec}
+  .f-table tr:hover{background:#f8faf5}
+  .conf{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+  .conf.hi{background:#e8f5e9;color:var(--lg)}.conf.med{background:#fef3e0;color:var(--or)}.conf.lo{background:#fde8e8;color:var(--rd)}
+  .trend{font-weight:600}.trend.up{color:var(--ac)}.trend.down{color:var(--rd)}
+  /* Alert */
+  .alert{background:linear-gradient(135deg,#fde8e8 0%,#fef3e0 100%);border:1px solid #f5c6cb;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .alert-icon{font-size:18px}.alert-c h4{font-size:12px;color:var(--dt)}.alert-c p{font-size:11px;color:var(--mu);margin-top:2px}
+  .alert-a{margin-left:auto;display:flex;gap:6px}
+  .back-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);text-decoration:none;margin-bottom:12px}.back-link:hover{color:var(--dg)}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);margin-right:4px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .waste-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+  .waste-item{background:#fff;border-radius:8px;padding:12px;border:1px solid #e0e5d8;text-align:center}
+  .waste-item-label{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+  .waste-item-val{font-size:14px;font-weight:700;color:var(--dg)}
+  .waste-item-unit{font-size:8px;color:var(--mu)}
+  /* Markdown timing chart */
+  .timing-bar{width:100%;height:24px;background:#f0f2ec;border-radius:4px;margin:8px 0;position:relative;overflow:hidden}
+  .timing-segment{height:100%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#fff}
+  .timing-fresh{background:#52B788}.timing-markdown{background:#F39C12}.timing-sold{background:#2D6A4F}
+  @media(max-width:900px){.sidebar{display:none}.grid4,.grid3{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.waste-summary{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><h1>Harris Farm</h1><div class="sub">Waste Reduction Agent</div></div>
+    <div class="nav-section">Agent</div>
+    <div class="nav-item active" onclick="showV('overview')">📊 Overview</div>
+    <div class="nav-item" onclick="showV('shelf-life')">📦 Shelf Life Tracker</div>
+    <div class="nav-item" onclick="showV('markdown')">💰 Markdown Engine</div>
+    <div class="nav-item" onclick="showV('imperfect')">🥕 Imperfect Picks</div>
+    <div class="nav-item" onclick="showV('analytics')">📈 Waste Analytics</div>
+    <div class="nav-section">Links</div>
+    <a href="/prototype.html" class="nav-item" style="text-decoration:none;color:inherit">🏠 Command Centre</a>
+    <a href="/" class="nav-item" style="text-decoration:none;color:inherit">← Back to Hub</a>
+    <div style="margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.4)"><span class="status-dot"></span> Monitoring 1,200+ SKU shelf life</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="vTitle">Waste Reduction Dashboard</h2>
+      <div class="topbar-right">
+        <select class="sel" onchange="updateStore(this.value)"><option>All Stores (38)</option><option>Leichhardt</option><option>Drummoyne</option><option>Willoughby</option><option>Miranda</option><option>Redfern</option><option>Brisbane CBD</option></select>
+        <select class="sel"><option>Today</option><option>Last 7 days</option><option>Last 30 days</option></select>
+        <button class="btn btn-o" onclick="this.textContent='↻ Refreshing...';setTimeout(()=>this.textContent='↻ Refresh',800)">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div id="v-overview">
+        <div class="alert">
+          <span class="alert-icon">⏰</span>
+          <div class="alert-c"><h4>Near-Expiry Alert: Berries & Leafy Greens — 340 items at risk</h4><p>Agent detected 84 kg of blueberries and 128 kg of mixed lettuce approaching expiry. Markdown recommendations have been auto-generated for immediate action.</p></div>
+          <div class="alert-a"><button class="btn btn-o" onclick="this.closest('.alert').style.display='none'">Dismiss</button><button class="btn btn-p" onclick="showV('shelf-life')">Review</button></div>
+        </div>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Waste Prevented Today</div><div class="card-val">$4,230</div><div class="card-ch up">↑ 12% vs. yesterday</div></div>
+          <div class="card y"><div class="card-label">Auto-Markdowns Today</div><div class="card-val">127</div><div class="card-ch up">27 stores engaged</div></div>
+          <div class="card b"><div class="card-label">Imperfect Picks Routed</div><div class="card-val">84 kg</div><div class="card-ch up">Saved from waste</div></div>
+          <div class="card r"><div class="card-label">Charity Donations</div><div class="card-val">28 kg</div><div class="card-ch up">To local food banks</div></div>
+        </div>
+
+        <div class="waste-summary">
+          <div class="waste-item"><div class="waste-item-label">Fresh Produce</div><div class="waste-item-val">12.4 kg</div><div class="waste-item-unit">waste</div></div>
+          <div class="waste-item"><div class="waste-item-label">Dairy & Cheese</div><div class="waste-item-val">3.2 kg</div><div class="waste-item-unit">waste</div></div>
+          <div class="waste-item"><div class="waste-item-label">Meat & Fish</div><div class="waste-item-val">2.1 kg</div><div class="waste-item-unit">waste</div></div>
+          <div class="waste-item"><div class="waste-item-label">Bakery</div><div class="waste-item-val">8.7 kg</div><div class="waste-item-unit">waste</div></div>
+          <div class="waste-item"><div class="waste-item-label">Other</div><div class="waste-item-val">1.9 kg</div><div class="waste-item-unit">waste</div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">📊 Waste Breakdown by Category — Today</span></div>
+            <div class="panel-b">
+              <div class="chart-container">
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-fruit" style="height:124px"></div></div><div class="chart-label">Produce</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-dairy" style="height:32px"></div></div><div class="chart-label">Dairy</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-meat" style="height:21px"></div></div><div class="chart-label">Meat</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-veg" style="height:87px"></div></div><div class="chart-label">Bakery</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-other" style="height:19px"></div></div><div class="chart-label">Other</div></div>
+              </div>
+              <div class="legend"><div class="legend-i"><div class="legend-d" style="background:#52B788"></div>Fruit</div><div class="legend-i"><div class="legend-d" style="background:#D4A843"></div>Bakery</div><div class="legend-i"><div class="legend-d" style="background:#E74C3C"></div>Meat</div><div class="legend-i"><div class="legend-d" style="background:#3498DB"></div>Dairy</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🤖 Agent Activity Feed</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Auto-triggered 47 markdown events across 22 products</div><div class="row-m">2 min ago • Avg. 18% discount applied • $2,840 recovery</div></div><span class="badge b-auto">Auto</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Routed 12kg berries to Imperfect Picks program</div><div class="row-m">8 min ago • Leichhardt & Drummoyne stores • Full recovery</div></div><span class="badge b-green">Success</span></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Flagged 84 kg leafy greens nearing expiry (48 hrs)</div><div class="row-m">14 min ago • Recommended 35% markdown pricing</div></div><span class="badge b-review">Pending</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Coordinated donation of 28kg unsellable produce to Foodbank NSW</div><div class="row-m">1 hr ago • Tax deduction eligible • Waste avoided: $890</div></div><span class="badge b-green">Completed</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Optimized Imperfect Picks display at 15 stores</div><div class="row-m">3 hrs ago • 84 kg net diverted from waste • Revenue: $1,240</div></div><span class="badge b-auto">Auto</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHELF LIFE TRACKER -->
+      <div id="v-shelf-life" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">Items Tracked</div><div class="card-val">1,247</div><div class="card-ch up">Fresh SKUs across 38 stores</div></div>
+          <div class="card r"><div class="card-label">Critical (< 24 hrs)</div><div class="card-val">64</div><div class="card-ch dn">Immediate action needed</div></div>
+          <div class="card y"><div class="card-label">Warning (24-48 hrs)</div><div class="card-val">142</div><div class="card-ch up">Markdown recommended</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📦 Shelf Life Status — All Products (Sorted by Urgency)</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Product</th><th>Store</th><th>Hours Remaining</th><th>Stock (kg/units)</th><th>Recommended Action</th><th>Est. Recovery Value</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Blueberries (170g tray)</strong></td><td>Leichhardt</td><td>16 hrs</td><td>84 units</td><td>Imperfect Picks + 45% markdown</td><td>$156</td><td><span class="badge b-alert">CRITICAL</span></td></tr>
+                <tr><td><strong>Mixed Lettuce (Iceberg)</strong></td><td>Drummoyne</td><td>28 hrs</td><td>128 kg</td><td>35% markdown to $2.99</td><td>$312</td><td><span class="badge b-review">Warning</span></td></tr>
+                <tr><td><strong>Strawberries (400g basket)</strong></td><td>Redfern</td><td>20 hrs</td><td>42 units</td><td>Markdown + in-store sampling</td><td>$98</td><td><span class="badge b-alert">CRITICAL</span></td></tr>
+                <tr><td><strong>Mangoes (Hass)</strong></td><td>Willoughby</td><td>36 hrs</td><td>62 kg</td><td>25% discount promotion</td><td>$284</td><td><span class="badge b-review">Warning</span></td></tr>
+                <tr><td><strong>Broccolini bunches</strong></td><td>Miranda</td><td>18 hrs</td><td>48 bunches</td><td>Markdown + charity donation</td><td>$64</td><td><span class="badge b-alert">CRITICAL</span></td></tr>
+                <tr><td><strong>Avocados (Hass)</strong></td><td>Leichhardt</td><td>44 hrs</td><td>156 units</td><td>Monitor — no action needed yet</td><td>$0</td><td><span class="badge b-auto">Normal</span></td></tr>
+                <tr><td><strong>Greek Yoghurt (200g)</strong></td><td>Surry Hills</td><td>14 hrs</td><td>118 units</td><td>Charity donation eligible</td><td>$0</td><td><span class="badge b-alert">CRITICAL</span></td></tr>
+                <tr><td><strong>Tomatoes (field-pack)</strong></td><td>Brisbane CBD</td><td>32 hrs</td><td>84 kg</td><td>30% markdown — soups promotion</td><td>$214</td><td><span class="badge b-review">Warning</span></td></tr>
+                <tr><td><strong>Cheddar Cheese (500g)</strong></td><td>Willoughby</td><td>12 hrs</td><td>28 units</td><td>Markdown + food service donation</td><td>$42</td><td><span class="badge b-alert">CRITICAL</span></td></tr>
+                <tr><td><strong>Spinach (200g bags)</strong></td><td>Leichhardt</td><td>22 hrs</td><td>96 bags</td><td>40% markdown or donations</td><td>$128</td><td><span class="badge b-review">Warning</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKDOWN ENGINE -->
+      <div id="v-markdown" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Markdowns Today</div><div class="card-val">127</div><div class="card-ch up">$2,840 recovery</div></div>
+          <div class="card y"><div class="card-label">Avg. Discount</div><div class="card-val">24%</div><div class="card-ch up">Optimized for sellthrough</div></div>
+          <div class="card b"><div class="card-label">Sell-Through Rate</div><div class="card-val">94.2%</div><div class="card-ch up">↑ 8% vs. manual</div></div>
+          <div class="card g"><div class="card-label">Waste Prevented</div><div class="card-val">$3,120</div><div class="card-ch up">vs. throwing away</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">💰 Auto-Markdown Events — Last 24 Hours</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Item</th><th>Original Price</th><th>Markdown Price</th><th>Discount %</th><th>Triggered</th><th>Store</th><th>Sold?</th><th>Revenue</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Strawberries 400g</strong></td><td>$4.99</td><td>$2.99</td><td>40%</td><td>8:14 AM</td><td>Redfern</td><td><span class="badge b-auto">Yes</span></td><td>$299</td></tr>
+                <tr><td><strong>Blueberries 170g</strong></td><td>$5.49</td><td>$3.29</td><td>40%</td><td>9:02 AM</td><td>Leichhardt</td><td><span class="badge b-auto">Yes</span></td><td>$329</td></tr>
+                <tr><td><strong>Mixed Lettuce 500g</strong></td><td>$3.49</td><td>$2.49</td><td>29%</td><td>10:17 AM</td><td>Drummoyne</td><td><span class="badge b-auto">Yes</span></td><td>$249</td></tr>
+                <tr><td><strong>Mangoes (3-pack)</strong></td><td>$7.99</td><td>$5.99</td><td>25%</td><td>11:43 AM</td><td>Willoughby</td><td><span class="badge b-auto">Yes</span></td><td>$599</td></tr>
+                <tr><td><strong>Broccolini bunch</strong></td><td>$3.29</td><td>$1.99</td><td>39%</td><td>12:08 PM</td><td>Miranda</td><td><span class="badge b-auto">Yes</span></td><td>$199</td></tr>
+                <tr><td><strong>Tomatoes field 2kg</strong></td><td>$6.99</td><td>$4.99</td><td>29%</td><td>1:22 PM</td><td>Brisbane CBD</td><td><span class="badge b-auto">Partial</span></td><td>$349</td></tr>
+                <tr><td><strong>Spinach 200g</strong></td><td>$2.99</td><td>$1.79</td><td>40%</td><td>2:05 PM</td><td>Leichhardt</td><td><span class="badge b-auto">Yes</span></td><td>$179</td></tr>
+                <tr><td><strong>Greek Yoghurt 200g</strong></td><td>$2.79</td><td>$1.39</td><td>50%</td><td>2:44 PM</td><td>Surry Hills</td><td><span class="badge b-alert">No</span></td><td>$0</td></tr>
+                <tr><td><strong>Capsicum Red 3-pk</strong></td><td>$5.99</td><td>$3.99</td><td>33%</td><td>3:21 PM</td><td>Willoughby</td><td><span class="badge b-auto">Yes</span></td><td>$399</td></tr>
+                <tr><td><strong>Cheddar Cheese 500g</strong></td><td>$7.49</td><td>$4.49</td><td>40%</td><td>4:08 PM</td><td>Willoughby</td><td><span class="badge b-alert">No</span></td><td>$0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📊 Markdown Timing Optimization Stats</span></div>
+          <div class="panel-b">
+            <div class="row"><div class="row-c"><div class="row-t">Average shelf-life at markdown trigger</div><div class="row-m">24.3 hours remaining (optimal window for sellthrough)</div></div></div>
+            <div class="row"><div class="row-c"><div class="row-t">Sell-through rate by category</div><div class="row-m">Produce 96.8% | Dairy 89.2% | Bakery 92.1%</div></div></div>
+            <div class="row"><div class="row-c"><div class="row-t">Best performing discount %</div><div class="row-m">35-40% markdowns show highest conversion (94.7% sellthrough)</div></div></div>
+            <div class="row"><div class="row-c"><div class="row-t">Price optimization insight</div><div class="row-m">Markdown below $2.00 triggers impulse buys but risks margin erosion</div></div></div>
+            <div class="row"><div class="row-c"><div class="row-t">Customer psychology finding</div><div class="row-m">Yellow shelf-tags convert 18% better than digital-only discounts</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMPERFECT PICKS -->
+      <div id="v-imperfect" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Kg Diverted Today</div><div class="card-val">84 kg</div><div class="card-ch up">From landfill</div></div>
+          <div class="card y"><div class="card-label">Items on Display</div><div class="card-val">342</div><div class="card-ch up">Across 27 stores</div></div>
+          <div class="card b"><div class="card-label">Customer Adoption Rate</div><div class="card-val">23.8%</div><div class="card-ch up">↑ 4.2% vs. last month</div></div>
+          <div class="card g"><div class="card-label">Revenue Recovered</div><div class="card-val">$1,240</div><div class="card-ch up">vs. $0 waste cost</div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🥕 Imperfect Picks Inventory Status</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="row-c"><div class="row-t">Cosmetically-imperfect fruit & veg</div><div class="row-m">32 kg — Slightly bruised apples, misshaped mangoes, bent carrots</div></div><span class="badge b-auto">In Stock</span></div>
+              <div class="row"><div class="row-c"><div class="row-t">Overstock clearance (excess supply)</div><div class="row-m">28 kg — Extra lettuce, tomatoes, zucchini from forecasting overages</div></div><span class="badge b-auto">In Stock</span></div>
+              <div class="row"><div class="row-c"><div class="row-t">Near-expiry produce (still fresh)</div><div class="row-m">18 kg — Berries, herbs, leafy greens at 3-5 day window</div></div><span class="badge b-auto">In Stock</span></div>
+              <div class="row"><div class="row-c"><div class="row-t">Bulk packs (broken cases)</div><div class="row-m">6 kg — Bananas in 3-packs when 5-packs damaged</div></div><span class="badge b-auto">In Stock</span></div>
+              <div class="row"><div class="row-c"><div class="row-t">Today's total diverted from waste</div><div class="row-m">84 kg | 12 kg fruit + 28 kg veg + 18 kg dairy + 26 kg specialty</div></div><span class="badge b-green">Tracked</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">📊 Weekly Imperfect Picks Performance</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="row-c"><div class="row-t">Monday</div><div class="row-m">12 kg diverted • 18.2% customer adoption • $142 revenue</div></div></div>
+              <div class="row"><div class="row-c"><div class="row-t">Tuesday</div><div class="row-m">16 kg diverted • 21.4% customer adoption • $184 revenue</div></div></div>
+              <div class="row"><div class="row-c"><div class="row-t">Wednesday</div><div class="row-m">14 kg diverted • 19.8% customer adoption • $168 revenue</div></div></div>
+              <div class="row"><div class="row-c"><div class="row-t">Thursday</div><div class="row-m">18 kg diverted • 24.6% customer adoption • $216 revenue</div></div></div>
+              <div class="row"><div class="row-c"><div class="row-t">Friday (Today)</div><div class="row-m">24 kg diverted • 28.2% customer adoption • $268 revenue</div></div></div>
+              <div class="row"><div class="row-c"><div class="row-t">Weekly Total</div><div class="row-m">84 kg diverted • Avg 18.4% adoption • $978 revenue</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WASTE ANALYTICS -->
+      <div id="v-analytics" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">Waste Reduced (30-day)</div><div class="card-val">-34%</div><div class="card-ch up">vs. baseline month</div></div>
+          <div class="card y"><div class="card-label">Estimated Savings</div><div class="card-val">$84K</div><div class="card-ch up">vs. landfill costs</div></div>
+          <div class="card b"><div class="card-label">Top Waste Category</div><div class="card-val">Produce</div><div class="card-ch up">46% of total</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📊 Waste Trend — Last 14 Days</span></div>
+          <div class="panel-b">
+            <div class="chart-container">
+              <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-fruit" style="height:48px"></div><div class="chart-bar waste-dairy" style="height:18px"></div><div class="chart-bar waste-meat" style="height:10px"></div></div><div class="chart-label">Day 1</div></div>
+              <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-fruit" style="height:52px"></div><div class="chart-bar waste-dairy" style="height:16px"></div><div class="chart-bar waste-meat" style="height:9px"></div></div><div class="chart-label">Day 2</div></div>
+              <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-fruit" style="height:44px"></div><div class="chart-bar waste-dairy" style="height:14px"></div><div class="chart-bar waste-meat" style="height:8px"></div></div><div class="chart-label">Day 3</div></div>
+              <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-fruit" style="height:38px"></div><div class="chart-bar waste-dairy" style="height:12px"></div><div class="chart-bar waste-meat" style="height:7px"></div></div><div class="chart-label">Day 4</div></div>
+              <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-fruit" style="height:35px"></div><div class="chart-bar waste-dairy" style="height:11px"></div><div class="chart-bar waste-meat" style="height:6px"></div></div><div class="chart-label">Day 5</div></div>
+              <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-fruit" style="height:32px"></div><div class="chart-bar waste-dairy" style="height:10px"></div><div class="chart-bar waste-meat" style="height:6px"></div></div><div class="chart-label">Day 6</div></div>
+              <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar waste-fruit" style="height:28px"></div><div class="chart-bar waste-dairy" style="height:9px"></div><div class="chart-bar waste-meat" style="height:5px"></div></div><div class="chart-label">Day 7</div></div>
+            </div>
+            <div class="legend"><div class="legend-i"><div class="legend-d" style="background:#52B788"></div>Produce</div><div class="legend-i"><div class="legend-d" style="background:#3498DB"></div>Dairy</div><div class="legend-i"><div class="legend-d" style="background:#E74C3C"></div>Meat</div></div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🏆 Top Waste Items (30-day)</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="row-c"><div class="row-t">Lettuce & Leafy Greens</div><div class="row-m">124 kg prevented • 32% of total waste reduction</div></div><span class="badge b-auto">Tracked</span></div>
+              <div class="row"><div class="row-c"><div class="row-t">Berries (mixed)</div><div class="row-m">84 kg prevented • 22% of total waste reduction</div></div><span class="badge b-auto">Tracked</span></div>
+              <div class="row"><div class="row-c"><div class="row-t">Bakery (bread, pastries)</div><div class="row-m">68 kg prevented • 18% of total waste reduction</div></div><span class="badge b-auto">Tracked</span></div>
+              <div class="row"><div class="row-c"><div class="row-t">Tomatoes & Stone Fruit</div><div class="row-m">52 kg prevented • 14% of total waste reduction</div></div><span class="badge b-auto">Tracked</span></div>
+              <div class="row"><div class="row-c"><div class="row-t">Dairy (yogurt, cheese)</div><div class="row-m">38 kg prevented • 10% of total waste reduction</div></div><span class="badge b-auto">Tracked</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🏪 Store Performance Rankings (Waste Prevention)</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="row-c"><div class="row-t">1. Leichhardt</div><div class="row-m">$8,240 waste prevented • 134 markdowns • 94.6% sell-through</div></div><span class="badge b-auto">Top</span></div>
+              <div class="row"><div class="row-c"><div class="row-t">2. Drummoyne</div><div class="row-m">$6,180 waste prevented • 98 markdowns • 91.2% sell-through</div></div></div>
+              <div class="row"><div class="row-c"><div class="row-t">3. Willoughby</div><div class="row-m">$5,820 waste prevented • 112 markdowns • 89.8% sell-through</div></div></div>
+              <div class="row"><div class="row-c"><div class="row-t">4. Redfern</div><div class="row-m">$5,240 waste prevented • 84 markdowns • 87.4% sell-through</div></div></div>
+              <div class="row"><div class="row-c"><div class="row-t">5. Miranda</div><div class="row-m">$4,620 waste prevented • 76 markdowns • 85.2% sell-through</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+function showV(v){
+  ['overview','shelf-life','markdown','imperfect','analytics'].forEach(x=>{const e=document.getElementById('v-'+x);if(e)e.style.display=x===v?'block':'none'});
+  const titles={overview:'Waste Reduction Dashboard',
+    'shelf-life':'Shelf Life Tracker',
+    markdown:'Markdown Engine',
+    imperfect:'Imperfect Picks Program',
+    analytics:'Waste Analytics & Trends'};
+  document.getElementById('vTitle').textContent=titles[v]||'Dashboard';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const idx={overview:1,'shelf-life':2,markdown:3,imperfect:4,analytics:5};
+  document.querySelectorAll('.sidebar .nav-item')[idx[v]]?.classList.add('active');
+}
+</script>
+</body>
+</html>

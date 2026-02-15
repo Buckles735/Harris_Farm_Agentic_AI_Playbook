@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harris Farm — Customer Experience & Personalisation Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+  :root{--dg:#1B4332;--mg:#2D6A4F;--lg:#40916C;--ac:#52B788;--go:#D4A843;--ow:#F5F7F0;--cr:#EDF2E4;--dt:#1A1A2E;--mu:#5A6B5D;--cb:#FFF;--rd:#E74C3C;--or:#F39C12;--bl:#3498DB}
+  *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--ow);color:var(--dt);min-height:100vh}
+  .app{display:flex;height:100vh}.sidebar{width:250px;background:var(--dg);color:#fff;display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar-header{padding:18px;border-bottom:1px solid rgba(255,255,255,.1)}.sidebar-header h1{font-family:'Playfair Display',serif;font-size:16px}.sidebar-header .sub{font-size:10px;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .nav-section{padding:6px 18px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:14px}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.65);transition:.15s;border-left:3px solid transparent}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}.nav-item.active{background:rgba(82,183,136,.15);color:var(--ac);border-left-color:var(--ac);font-weight:500}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{background:#fff;border-bottom:1px solid #e0e5d8;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+  .topbar h2{font-family:'Playfair Display',serif;font-size:18px;color:var(--dg)}
+  .topbar-right{display:flex;gap:8px;align-items:center}
+  .btn{padding:6px 14px;border-radius:5px;border:none;cursor:pointer;font-size:11px;font-weight:500;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+  .btn-p{background:var(--ac);color:#fff}.btn-p:hover{background:var(--lg)}.btn-o{background:transparent;border:1px solid #c8d0c0;color:var(--mu)}.btn-o:hover{border-color:var(--ac)}
+  select.sel{padding:6px 10px;border:1px solid #c8d0c0;border-radius:5px;font-size:11px;background:#fff}
+  .content{flex:1;overflow-y:auto;padding:20px 24px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  .card{background:#fff;border-radius:10px;padding:16px;border:1px solid #e0e5d8;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .card.g::before{background:var(--ac)}.card.y::before{background:var(--go)}.card.r::before{background:var(--rd)}.card.b::before{background:var(--bl)}
+  .card-label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .card-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--dg)}
+  .card-ch{font-size:10px;margin-top:3px}.up{color:var(--ac)}.dn{color:var(--rd)}
+  .panel{background:#fff;border-radius:10px;border:1px solid #e0e5d8;overflow:hidden;margin-bottom:16px}
+  .panel-h{padding:12px 16px;border-bottom:1px solid #e0e5d8;display:flex;align-items:center;justify-content:space-between}
+  .panel-t{font-weight:600;font-size:13px;color:var(--dg)}.panel-b{padding:14px 16px}
+  .row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2ec}.row:last-child{border-bottom:none}
+  .dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}.dot.h{background:var(--rd)}.dot.m{background:var(--or)}.dot.l{background:var(--ac)}
+  .row-c{flex:1}.row-t{font-size:12px;font-weight:500}.row-m{font-size:10px;color:var(--mu);margin-top:2px}
+  .badge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:500;white-space:nowrap}
+  .b-auto{background:#e8f5e9;color:var(--lg)}.b-review{background:#fef3e0;color:var(--or)}.b-alert{background:#fde8e8;color:var(--rd)}.b-success{background:#e8f5e9;color:var(--ac)}
+  .legend{display:flex;gap:14px;margin:8px 0;justify-content:center}.legend-i{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mu)}
+  .legend-d{width:8px;height:8px;border-radius:2px}
+  /* Tables */
+  .f-table{width:100%;border-collapse:collapse;font-size:11px}
+  .f-table th{text-align:left;padding:8px 10px;background:var(--cr);color:var(--dg);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+  .f-table td{padding:8px 10px;border-bottom:1px solid #f0f2ec}
+  .f-table tr:hover{background:#f8faf5}
+  .conf{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+  .conf.hi{background:#e8f5e9;color:var(--lg)}.conf.med{background:#fef3e0;color:var(--or)}.conf.lo{background:#fde8e8;color:var(--rd)}
+  .trend{font-weight:600}.trend.up{color:var(--ac)}.trend.down{color:var(--rd)}
+  .alert{background:linear-gradient(135deg,#e8f5e9 0%,#fef3e0 100%);border:1px solid #c8e6c9;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .alert-icon{font-size:18px}.alert-c h4{font-size:12px;color:var(--dt)}.alert-c p{font-size:11px;color:var(--mu);margin-top:2px}
+  .alert-a{margin-left:auto;display:flex;gap:6px}
+  .back-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);text-decoration:none;margin-bottom:12px}.back-link:hover{color:var(--dg)}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);margin-right:4px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  /* Sentiment bars */
+  .sentiment-bars{display:flex;gap:2px;margin:8px 0;height:32px}
+  .sentiment-bar{flex:1;border-radius:4px;display:flex;align-items:flex-end;justify-content:center;color:#fff;font-size:9px;font-weight:600}
+  .sentiment-positive{background:var(--ac)}.sentiment-neutral{background:var(--or)}.sentiment-negative{background:var(--rd)}
+  /* Conversation badge */
+  .channel-badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:500;background:#eff5f0;color:var(--lg)}
+  .channel-badge.amazon{background:#fef5e8;color:var(--or)}.channel-badge.email{background:#f0f4f9;color:var(--bl)}.channel-badge.social{background:#fde8e8;color:var(--rd)}
+  @media(max-width:900px){.sidebar{display:none}.grid4,.grid3{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><h1>Harris Farm</h1><div class="sub">Customer Experience Agent</div></div>
+    <div class="nav-section">Experience</div>
+    <div class="nav-item active" onclick="showV('overview')">📊 Overview</div>
+    <div class="nav-item" onclick="showV('conversations')">💬 Live Conversations</div>
+    <div class="nav-item" onclick="showV('personalisation')">🎯 Personalisation Engine</div>
+    <div class="nav-item" onclick="showV('loyalty')">⭐ Loyalty & Engagement</div>
+    <div class="nav-item" onclick="showV('sentiment')">😊 Sentiment Analysis</div>
+    <div class="nav-section">Links</div>
+    <a href="/prototype.html" class="nav-item" style="text-decoration:none;color:inherit">🏠 Command Centre</a>
+    <a href="/" class="nav-item" style="text-decoration:none;color:inherit">← Back to Hub</a>
+    <div style="margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.4)"><span class="status-dot"></span> Serving 143 conversations right now</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="vTitle">Customer Experience Dashboard</h2>
+      <div class="topbar-right">
+        <select class="sel" onchange="updatePeriod(this.value)"><option>Today</option><option>This Week</option><option>This Month</option><option>All Time</option></select>
+        <button class="btn btn-o" onclick="this.textContent='↻ Refreshing...';setTimeout(()=>this.textContent='↻ Refresh',800)">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div id="v-overview">
+        <div class="alert">
+          <span class="alert-icon">💚</span>
+          <div class="alert-c"><h4>Agent Performance: 42% of inquiries handled autonomously</h4><p>The agent successfully resolved 143 of 340 total customer interactions today without human escalation, saving ~8.5 hours of support time.</p></div>
+          <div class="alert-a"><button class="btn btn-o" onclick="this.closest('.alert').style.display='none'">Dismiss</button></div>
+        </div>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Autonomous Inquiries Today</div><div class="card-val">143</div><div class="card-ch up">42% of 340 total</div></div>
+          <div class="card y"><div class="card-label">Customer Satisfaction</div><div class="card-val">4.7</div><div class="card-ch up">Out of 5.0 stars</div></div>
+          <div class="card b"><div class="card-label">Personalised Offers Sent</div><div class="card-val">2,340</div><div class="card-ch up">65% conversion rate</div></div>
+          <div class="card g"><div class="card-label">Average Basket Uplift</div><div class="card-val">+9.2%</div><div class="card-ch up">vs. non-personalised</div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">📱 Interaction Channels</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Web Chat</div><div class="row-m">52% of interactions • Average response time 1.2s</div></div><div style="font-size:12px;font-weight:600;color:var(--dg)">177</div></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Amazon Business Portal</div><div class="row-m">28% of interactions • B2B orders flagged for bulk discounts</div></div><div style="font-size:12px;font-weight:600;color:var(--dg)">95</div></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Email Inquiries</div><div class="row-m">14% of interactions • Auto-categorised & prioritised</div></div><div style="font-size:12px;font-weight:600;color:var(--dg)">48</div></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Social Media DMs</div><div class="row-m">6% of interactions • Instagram & Facebook</div></div><div style="font-size:12px;font-weight:600;color:var(--dg)">20</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🤖 Agent Activity Feed</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Sent personalised wine pairing recommendations to 340 Premium Wine segment customers</div><div class="row-m">2 min ago • Based on purchase history & trending varieties</div></div><span class="badge b-auto">Auto</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Resolved BBQ supply inquiry — Health-conscious family customer</div><div class="row-m">8 min ago • Recommended grass-fed beef & organic sides • Customer added $87 to basket</div></div><span class="badge b-auto">Autonomous</span></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Escalated product allergy question to support team</div><div class="row-m">14 min ago • Requires human review for allergen documentation</div></div><span class="badge b-review">Escalated</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Sent recipe suggestion (Imperfect Picks) to organic devotee customer</div><div class="row-m">22 min ago • Generated $12.50 cross-sell • 87% relevance score</div></div><span class="badge b-auto">Autonomous</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Proactive outreach: loyalty points expiring soon notification</div><div class="row-m">43 min ago • 156 customers notified • Engagement rate 34%</div></div><span class="badge b-auto">Auto</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE CONVERSATIONS -->
+      <div id="v-conversations" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">💬 Active Conversations (Real-time)</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Customer</th><th>Channel</th><th>Query Type</th><th>Started</th><th>Agent Status</th><th>Resolution</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Sarah Mitchell</strong></td><td><span class="channel-badge">Web Chat</span></td><td>Product availability — organic avocados</td><td>2 min ago</td><td><span style="color:var(--ac);font-weight:600">Responding</span></td><td><span class="badge b-auto">High confidence</span></td></tr>
+                <tr><td><strong>James Chen</strong></td><td><span class="channel-badge amazon">Amazon</span></td><td>Bulk order quote for corporate catering</td><td>5 min ago</td><td><span style="color:var(--ac);font-weight:600">Processing</span></td><td><span class="badge b-review">Awaiting details</span></td></tr>
+                <tr><td><strong>Emma Rodriguez</strong></td><td><span class="channel-badge">Web Chat</span></td><td>Delivery time estimation</td><td>7 min ago</td><td><span style="color:var(--ac);font-weight:600">Resolved</span></td><td><span class="badge b-success">Autonomous ✓</span></td></tr>
+                <tr><td><strong>Marcus Thompson</strong></td><td><span class="channel-badge email">Email</span></td><td>Complaint: Damaged produce arrived</td><td>12 min ago</td><td><span style="color:var(--rd);font-weight:600">Escalated</span></td><td><span class="badge b-alert">Human review</span></td></tr>
+                <tr><td><strong>Lisa Park</strong></td><td><span class="channel-badge">Web Chat</span></td><td>Recipe recommendation for weeknight dinner</td><td>14 min ago</td><td><span style="color:var(--ac);font-weight:600">Resolved</span></td><td><span class="badge b-success">Autonomous ✓</span></td></tr>
+                <tr><td><strong>David Johnson</strong></td><td><span class="channel-badge social">Social</span></td><td>Instagram: Imperfect Picks question</td><td>18 min ago</td><td><span style="color:var(--ac);font-weight:600">Responding</span></td><td><span class="badge b-auto">Standard response</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERSONALISATION ENGINE -->
+      <div id="v-personalisation" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">Active Segments</div><div class="card-val">8</div><div class="card-ch up">23,450 total customers</div></div>
+          <div class="card y"><div class="card-label">Avg. Recommendation Relevance</div><div class="card-val">87%</div><div class="card-ch up">↑ 4.2% this month</div></div>
+          <div class="card b"><div class="card-label">Cross-Sell Success Rate</div><div class="card-val">31%</div><div class="card-ch up">$47K incremental revenue</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🎯 Customer Segments & Personalisation Performance</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Segment Name</th><th>Size</th><th>Top Recommended Products</th><th>Engagement Rate</th><th>Revenue Uplift</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Health-Conscious Families</strong></td><td>3,240</td><td>Organic produce, grass-fed meat, superfoods</td><td><span class="conf hi">78%</span></td><td><span class="trend up">+12.4%</span></td></tr>
+                <tr><td><strong>Premium Wine Buyers</strong></td><td>1,850</td><td>Curated wine selections, specialty cheeses, gourmet items</td><td><span class="conf hi">82%</span></td><td><span class="trend up">+18.7%</span></td></tr>
+                <tr><td><strong>Weekend BBQ Hosts</strong></td><td>2,670</td><td>Grass-fed beef, sausages, marinades, charcoal</td><td><span class="conf hi">75%</span></td><td><span class="trend up">+9.8%</span></td></tr>
+                <tr><td><strong>Organic Devotees</strong></td><td>2,100</td><td>Certified organic, biodynamic, sustainable products</td><td><span class="conf hi">85%</span></td><td><span class="trend up">+15.2%</span></td></tr>
+                <tr><td><strong>Budget-Conscious Shoppers</strong></td><td>4,580</td><td>Imperfect Picks, bulk items, weekly specials</td><td><span class="conf med">68%</span></td><td><span class="trend up">+5.3%</span></td></tr>
+                <tr><td><strong>Quick Meal Planners</strong></td><td>3,920</td><td>Pre-prepped items, meal solutions, fresh basics</td><td><span class="conf med">71%</span></td><td><span class="trend up">+7.1%</span></td></tr>
+                <tr><td><strong>Vegan/Plant-Based</strong></td><td>1,640</td><td>Plant-based proteins, specialty vegetables, vegan options</td><td><span class="conf hi">79%</span></td><td><span class="trend up">+11.6%</span></td></tr>
+                <tr><td><strong>Culinary Enthusiasts</strong></td><td>1,450</td><td>Specialty ingredients, ethnic produce, artisan products</td><td><span class="conf hi">88%</span></td><td><span class="trend up">+22.3%</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOYALTY & ENGAGEMENT -->
+      <div id="v-loyalty" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Active Loyalty Members</div><div class="card-val">18,240</div><div class="card-ch up">76% of customer base</div></div>
+          <div class="card y"><div class="card-label">Program Engagement Rate</div><div class="card-val">64%</div><div class="card-ch up">Purchased in last 30 days</div></div>
+          <div class="card b"><div class="card-label">Points Redeemed Today</div><div class="card-val">$8,450</div><div class="card-ch up">487 redemptions</div></div>
+          <div class="card g"><div class="card-label">Personalised Offer Conversion</div><div class="card-val">65%</div><div class="card-ch up">vs. 28% generic offers</div></div>
+        </div>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">⭐ Recent Loyalty Campaigns</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Double points on organic produce (Health-Conscious segment)</div><div class="row-m">14 hours ago • 2,340 targeted members • 58% engagement • $12K incremental revenue</div></div><span class="badge b-auto">Active</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Wine club exclusive tasting event — Premium Wine Buyers</div><div class="row-m">Yesterday • Exclusive access to new vintage • 71% conversion to purchase</div></div><span class="badge b-auto">Completed</span></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Points expiring soon reminders sent</div><div class="row-m">2 days ago • 1,850 members notified • 34% redeemed within 48 hours</div></div><span class="badge b-review">Ongoing</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Imperfect Picks loyalty boost — Budget segment</div><div class="row-m">4 days ago • 3x points on Imperfect Picks • 42% uptake • Reduced waste by 8%</div></div><span class="badge b-auto">Completed</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Referral bonus campaign launched</div><div class="row-m">1 week ago • 340 new members referred • $2,890 in commission issued</div></div><span class="badge b-auto">Active</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🎁 Member Tier Distribution</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Bronze Members</div><div class="row-m">12,480 members • $0–$500 annual spend • 1 point per dollar</div></div><div style="font-weight:600;color:var(--dg)">68%</div></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Silver Members</div><div class="row-m">3,850 members • $501–$1,500 spend • 1.25 points per dollar</div></div><div style="font-weight:600;color:var(--or)">21%</div></div>
+              <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">Gold Members</div><div class="row-m">1,910 members • $1,500+ annual spend • 1.5 points per dollar</div></div><div style="font-weight:600;color:var(--rd)">11%</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SENTIMENT ANALYSIS -->
+      <div id="v-sentiment" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">Overall Sentiment</div><div class="card-val">+82%</div><div class="card-ch up">Positive interactions</div></div>
+          <div class="card y"><div class="card-label">Neutral Feedback</div><div class="card-val">14%</div><div class="card-ch">No strong opinion</div></div>
+          <div class="card r"><div class="card-label">Negative Mentions</div><div class="card-val">4%</div><div class="card-ch dn">Declining trend</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📊 Sentiment Breakdown Today</span></div>
+          <div class="panel-b" style="padding:20px 16px">
+            <div style="margin-bottom:20px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <div style="width:50px;font-size:12px;font-weight:600;color:var(--ac)">Positive</div>
+                <div class="sentiment-bars"><div class="sentiment-bar sentiment-positive" style="width:100%;justify-content:flex-end;padding-right:8px">278 (82%)</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <div style="width:50px;font-size:12px;font-weight:600;color:var(--or)">Neutral</div>
+                <div class="sentiment-bars"><div class="sentiment-bar sentiment-neutral" style="width:48px;justify-content:center">47 (14%)</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:50px;font-size:12px;font-weight:600;color:var(--rd)">Negative</div>
+                <div class="sentiment-bars"><div class="sentiment-bar sentiment-negative" style="width:32px;justify-content:center">15 (4%)</div></div>
+              </div>
+            </div>
+            <div class="legend" style="justify-content:flex-start;margin-top:16px">
+              <div class="legend-i"><div class="legend-d sentiment-positive"></div>Positive</div>
+              <div class="legend-i"><div class="legend-d sentiment-neutral"></div>Neutral</div>
+              <div class="legend-i"><div class="legend-d sentiment-negative"></div>Negative</div>
+            </div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">😊 Top Praise Themes</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Imperfect Picks quality & value</div><div class="row-m">67 mentions • "Great quality, great price" • Strong loyalty driver</div></div><span style="font-weight:600;color:var(--ac)">↑</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Delivery speed & reliability</div><div class="row-m">54 mentions • Same-day delivery consistently praised</div></div><span style="font-weight:600;color:var(--ac)">↑</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Product freshness & quality</div><div class="row-m">48 mentions • "Always fresh" most common compliment</div></div><span style="font-weight:600;color:var(--ac)">→</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Customer service responsiveness</div><div class="row-m">31 mentions • Quick resolution to issues</div></div><span style="font-weight:600;color:var(--ac)">↑</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">😞 Concerns & Issues</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">Packaging sustainability</div><div class="row-m">8 mentions • Request for plastic-free options increasing</div></div><span class="badge b-alert">Monitor</span></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Price increases on organic items</div><div class="row-m">4 mentions • Seasonal price fluctuations for premium segment</div></div><span class="badge b-review">Normal</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Limited specialty item availability</div><div class="row-m">2 mentions • Culinary enthusiasts seeking rare ingredients</div></div><span class="badge b-auto">Noted</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Delivery slot availability</div><div class="row-m">1 mention • Peak times have limited availability</div></div><span class="badge b-auto">Noted</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+function showV(v){
+  ['overview','conversations','personalisation','loyalty','sentiment'].forEach(x=>{const e=document.getElementById('v-'+x);if(e)e.style.display=x===v?'block':'none'});
+  const titles={overview:'Customer Experience Dashboard',conversations:'Live Conversations',personalisation:'Personalisation Engine',loyalty:'Loyalty & Engagement',sentiment:'Sentiment Analysis'};
+  document.getElementById('vTitle').textContent=titles[v]||'Dashboard';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const idx={overview:0,conversations:1,personalisation:2,loyalty:3,sentiment:4};
+  document.querySelectorAll('.sidebar .nav-item')[idx[v]]?.classList.add('active');
+}
+function updatePeriod(period){
+  console.log('Period changed to: '+period);
+}
+</script>
+</body>
+</html>

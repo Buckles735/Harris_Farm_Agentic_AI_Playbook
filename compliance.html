@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harris Farm — Quality Assurance & Compliance Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+  :root{--dg:#1B4332;--mg:#2D6A4F;--lg:#40916C;--ac:#52B788;--go:#D4A843;--ow:#F5F7F0;--cr:#EDF2E4;--dt:#1A1A2E;--mu:#5A6B5D;--cb:#FFF;--rd:#E74C3C;--or:#F39C12;--bl:#3498DB}
+  *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--ow);color:var(--dt);min-height:100vh}
+  .app{display:flex;height:100vh}.sidebar{width:250px;background:var(--dg);color:#fff;display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar-header{padding:18px;border-bottom:1px solid rgba(255,255,255,.1)}.sidebar-header h1{font-family:'Playfair Display',serif;font-size:16px}.sidebar-header .sub{font-size:10px;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .nav-section{padding:6px 18px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:14px}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.65);transition:.15s;border-left:3px solid transparent}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}.nav-item.active{background:rgba(82,183,136,.15);color:var(--ac);border-left-color:var(--ac);font-weight:500}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{background:#fff;border-bottom:1px solid #e0e5d8;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+  .topbar h2{font-family:'Playfair Display',serif;font-size:18px;color:var(--dg)}
+  .topbar-right{display:flex;gap:8px;align-items:center}
+  .btn{padding:6px 14px;border-radius:5px;border:none;cursor:pointer;font-size:11px;font-weight:500;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+  .btn-p{background:var(--ac);color:#fff}.btn-p:hover{background:var(--lg)}.btn-o{background:transparent;border:1px solid #c8d0c0;color:var(--mu)}.btn-o:hover{border-color:var(--ac)}
+  select.sel{padding:6px 10px;border:1px solid #c8d0c0;border-radius:5px;font-size:11px;background:#fff}
+  .content{flex:1;overflow-y:auto;padding:20px 24px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  .card{background:#fff;border-radius:10px;padding:16px;border:1px solid #e0e5d8;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .card.g::before{background:var(--ac)}.card.y::before{background:var(--go)}.card.r::before{background:var(--rd)}.card.b::before{background:var(--bl)}
+  .card-label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .card-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--dg)}
+  .card-ch{font-size:10px;margin-top:3px}.up{color:var(--ac)}.dn{color:var(--rd)}
+  .panel{background:#fff;border-radius:10px;border:1px solid #e0e5d8;overflow:hidden;margin-bottom:16px}
+  .panel-h{padding:12px 16px;border-bottom:1px solid #e0e5d8;display:flex;align-items:center;justify-content:space-between}
+  .panel-t{font-weight:600;font-size:13px;color:var(--dg)}.panel-b{padding:14px 16px}
+  .row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2ec}.row:last-child{border-bottom:none}
+  .dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}.dot.h{background:var(--rd)}.dot.m{background:var(--or)}.dot.l{background:var(--ac)}
+  .row-c{flex:1}.row-t{font-size:12px;font-weight:500}.row-m{font-size:10px;color:var(--mu);margin-top:2px}
+  .badge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:500;white-space:nowrap}
+  .b-auto{background:#e8f5e9;color:var(--lg)}.b-review{background:#fef3e0;color:var(--or)}.b-alert{background:#fde8e8;color:var(--rd)}
+  /* Tables */
+  .f-table{width:100%;border-collapse:collapse;font-size:11px}
+  .f-table th{text-align:left;padding:8px 10px;background:var(--cr);color:var(--dg);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+  .f-table td{padding:8px 10px;border-bottom:1px solid #f0f2ec}
+  .f-table tr:hover{background:#f8faf5}
+  .conf{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+  .conf.hi{background:#e8f5e9;color:var(--lg)}.conf.med{background:#fef3e0;color:var(--or)}.conf.lo{background:#fde8e8;color:var(--rd)}
+  .trend{font-weight:600}.trend.up{color:var(--ac)}.trend.down{color:var(--rd)}
+  /* Alert */
+  .alert{background:linear-gradient(135deg,#e8f5e9 0%,#fef3e0 100%);border:1px solid #c8e6c9;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .alert-icon{font-size:18px}.alert-c h4{font-size:12px;color:var(--dt)}.alert-c p{font-size:11px;color:var(--mu);margin-top:2px}
+  .alert-a{margin-left:auto;display:flex;gap:6px}
+  .back-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);text-decoration:none;margin-bottom:12px}.back-link:hover{color:var(--dg)}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);margin-right:4px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  /* Timeline */
+  .timeline{position:relative;padding-left:20px}
+  .timeline-item{position:relative;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #f0f2ec}
+  .timeline-item:last-child{border-bottom:none}
+  .timeline-item::before{content:'';position:absolute;left:-20px;top:2px;width:8px;height:8px;background:var(--ac);border-radius:50%}
+  .timeline-time{font-size:9px;color:var(--mu)}.timeline-text{font-size:11px;font-weight:500}
+  @media(max-width:900px){.sidebar{display:none}.grid4,.grid3{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><h1>Harris Farm</h1><div class="sub">Compliance Agent</div></div>
+    <div class="nav-section">Monitoring</div>
+    <div class="nav-item active" onclick="showV('overview')">📊 Overview</div>
+    <div class="nav-item" onclick="showV('temperature')">🌡️ Temperature</div>
+    <div class="nav-item" onclick="showV('certifications')">📋 Certifications</div>
+    <div class="nav-section">History</div>
+    <div class="nav-item" onclick="showV('audit')">✓ Audit Log</div>
+    <div class="nav-item" onclick="showV('incidents')">⚠️ Incidents</div>
+    <div class="nav-section">Links</div>
+    <a href="/prototype.html" class="nav-item" style="text-decoration:none;color:inherit">🏠 Command Centre</a>
+    <a href="/" class="nav-item" style="text-decoration:none;color:inherit">← Back to Hub</a>
+    <div style="margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.4)"><span class="status-dot"></span> 152 automated checks today across 38 stores</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="vTitle">Quality Assurance & Compliance Dashboard</h2>
+      <div class="topbar-right">
+        <select class="sel" onchange="updateStore(this.value)"><option>All Stores (38)</option><option>Leichhardt</option><option>Drummoyne</option><option>Willoughby</option><option>Miranda</option><option>Redfern</option><option>Brisbane CBD</option></select>
+        <button class="btn btn-o" onclick="this.textContent='↻ Refreshing...';setTimeout(()=>this.textContent='↻ Refresh',800)">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div id="v-overview">
+        <div class="alert">
+          <span class="alert-icon">❄️</span>
+          <div class="alert-c"><h4>Temperature Incident: Redfern Cold Room — +2.8°C above threshold</h4><p>Agent detected thermal drift at 11:47 AM. Auto-escalated to store manager. Maintenance scheduled for 2 PM. Stock integrity assessed — no spoilage risk identified yet.</p></div>
+          <div class="alert-a"><button class="btn btn-o" onclick="this.closest('.alert').style.display='none'">Dismiss</button><button class="btn btn-p" onclick="showV('temperature')">View Details</button></div>
+        </div>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Compliance Score</div><div class="card-val">99.2%</div><div class="card-ch up">↑ 0.3% from yesterday</div></div>
+          <div class="card b"><div class="card-label">Auto-Audits Today</div><div class="card-val">152</div><div class="card-ch up">Across 38 stores</div></div>
+          <div class="card r"><div class="card-label">Active Incidents</div><div class="card-val">1</div><div class="card-ch dn">Redfern cold room</div></div>
+          <div class="card y"><div class="card-label">Certifications Expiring</div><div class="card-val">3</div><div class="card-ch dn">Within 30 days</div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🌡️ Temperature Network Status</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Cold Rooms: 38/38 operational</div><div class="row-m">All temperature thresholds nominal • Last check 2 min ago</div></div></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Display Fridges: 156/156 operational</div><div class="row-m">Average temperature 4.2°C • Within tolerance band</div></div></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Freezers: 89/89 operational</div><div class="row-m">1 freezer warming trend detected at Parramatta — watching closely</div></div></div>
+              <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">⚠️ Redfern cold room: 3.2°C (threshold 1.0°C)</div><div class="row-m">Maintenance scheduled 2:00 PM • Agent monitoring hourly until resolved</div></div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🤖 Agent Activity Feed</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Morning temperature sweep: All 283 cold chain points within tolerance</div><div class="row-m">7:32 AM • Completed in 8 minutes</div></div><span class="badge b-auto">Auto</span></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Temperature alert: Redfern cold room thermal drift detected</div><div class="row-m">11:47 AM • Auto-escalated to store manager + facilities</div></div><span class="badge b-alert">Escalated</span></div>
+              <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">Hygiene checklist: Miranda store minor non-compliance flagged</div><div class="row-m">1:15 PM • Meat prep area storage temperatures — corrected immediately</div></div><span class="badge b-review">Review</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Expiry date scan: 12 products flagged for rotation at Willoughby</div><div class="row-m">12:30 PM • Dairy items approaching shelf life • Staff notified</div></div><span class="badge b-auto">Auto</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Certification reminder: Organic cert renewal notice sent to compliance team</div><div class="row-m">10:02 AM • Renewal due in 28 days • Documentation already prepared</div></div><span class="badge b-auto">Auto</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEMPERATURE MONITORING -->
+      <div id="v-temperature" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">On-Threshold Equipment</div><div class="card-val">282/283</div><div class="card-ch up">99.6% compliant</div></div>
+          <div class="card b"><div class="card-label">Active Monitoring Points</div><div class="card-val">283</div><div class="card-ch up">IoT sensors deployed</div></div>
+          <div class="card r"><div class="card-label">Critical Alerts</div><div class="card-val">1</div><div class="card-ch dn">Redfern cold room</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">❄️ Real-Time Cold Chain Dashboard — All Stores</span><select class="sel"><option>All Equipment</option><option>Cold Rooms</option><option>Display Fridges</option><option>Freezers</option></select></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Location</th><th>Equipment Type</th><th>Current Temp</th><th>Threshold Range</th><th>Status</th><th>Last Alert</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Redfern</strong></td><td>Cold Room A</td><td>3.2°C</td><td>0.5–2.0°C</td><td><span class="badge b-alert">CRITICAL</span></td><td>11:47 AM</td><td><span class="conf lo">Maintenance: 2 PM</span></td></tr>
+                <tr><td><strong>Leichhardt</strong></td><td>Cold Room</td><td>1.1°C</td><td>0.5–2.0°C</td><td><span class="badge b-auto">OK</span></td><td>—</td><td><span class="badge b-auto">Monitoring</span></td></tr>
+                <tr><td><strong>Drummoyne</strong></td><td>Cold Room</td><td>1.4°C</td><td>0.5–2.0°C</td><td><span class="badge b-auto">OK</span></td><td>—</td><td><span class="badge b-auto">Monitoring</span></td></tr>
+                <tr><td><strong>Miranda</strong></td><td>Display Fridge 1</td><td>4.1°C</td><td>3.5–5.0°C</td><td><span class="badge b-auto">OK</span></td><td>—</td><td><span class="badge b-auto">Monitoring</span></td></tr>
+                <tr><td><strong>Parramatta</strong></td><td>Freezer</td><td>-16.8°C</td><td>-18.0 to -16.0°C</td><td><span class="badge b-review">WARNING</span></td><td>1:22 PM</td><td><span class="badge b-review">Watch Close</span></td></tr>
+                <tr><td><strong>Willoughby</strong></td><td>Display Fridge 2</td><td>4.3°C</td><td>3.5–5.0°C</td><td><span class="badge b-auto">OK</span></td><td>—</td><td><span class="badge b-auto">Monitoring</span></td></tr>
+                <tr><td><strong>Brisbane CBD</strong></td><td>Cold Room</td><td>1.5°C</td><td>0.5–2.0°C</td><td><span class="badge b-auto">OK</span></td><td>—</td><td><span class="badge b-auto">Monitoring</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📍 Redfern Incident Timeline & Agent Response</span></div>
+          <div class="panel-b">
+            <div class="timeline">
+              <div class="timeline-item"><div class="timeline-time">11:42 AM</div><div class="timeline-text">IoT sensor detected temperature drift in Cold Room A (was 1.8°C, now 2.1°C)</div></div>
+              <div class="timeline-item"><div class="timeline-time">11:47 AM</div><div class="timeline-text">Agent confirmed drift trend over 5-minute window. Threshold breach imminent. Auto-escalated to store manager via SMS + email.</div></div>
+              <div class="timeline-item"><div class="timeline-time">11:52 AM</div><div class="timeline-text">Store manager acknowledged. Agent initiated 15-minute monitoring cycle (reduced from 60min). Began cold chain stock assessment.</div></div>
+              <div class="timeline-item"><div class="timeline-time">12:10 PM</div><div class="timeline-text">Facilities team arrived. Diagnosed faulty compressor thermostat. Replacement unit ordered (ETA 1:30 PM). Temporary cooling units staged.</div></div>
+              <div class="timeline-item"><div class="timeline-time">12:45 PM</div><div class="timeline-text">Stock integrity scan completed. 240 kg seafood + 180 kg prepared meals flagged for heightened monitoring. Core temp checks passed — no spoilage detected.</div></div>
+              <div class="timeline-item"><div class="timeline-time">Now</div><div class="timeline-text">Maintenance scheduled 2:00 PM. Agent continues hourly monitoring until normal operation restored.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CERTIFICATIONS -->
+      <div id="v-certifications" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">Active Certifications</div><div class="card-val">47</div><div class="card-ch up">All stores & suppliers</div></div>
+          <div class="card y"><div class="card-label">Expiring in 30 Days</div><div class="card-val">3</div><div class="card-ch dn">Renewal notices sent</div></div>
+          <div class="card b"><div class="card-label">Upcoming Audits</div><div class="card-val">2</div><div class="card-ch dn">Scheduled next month</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📋 Certification Tracker — Suppliers & Stores</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Entity</th><th>Certification Type</th><th>Issued</th><th>Expires</th><th>Days Left</th><th>Status</th><th>Agent Action</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Riverina Fruit Co.</strong></td><td>Organic (Cert)</td><td>15 Feb 2023</td><td>14 Feb 2025</td><td><span class="conf lo">0</span></td><td><span class="badge b-alert">EXPIRED</span></td><td><span class="badge b-alert">Urgent: Verify</span></td></tr>
+                <tr><td><strong>Sydney Produce Mkt</strong></td><td>Food Safety (FSQS)</td><td>10 Mar 2023</td><td>9 Mar 2026</td><td><span class="conf hi">382</span></td><td><span class="badge b-auto">OK</span></td><td><span class="badge b-auto">Monitoring</span></td></tr>
+                <tr><td><strong>Leichhardt Store</strong></td><td>Organic (Store)</td><td>1 Mar 2023</td><td>28 Feb 2025</td><td><span class="conf lo">13</span></td><td><span class="badge b-review">EXPIRING</span></td><td><span class="badge b-review">Renewal Reminder Sent</span></td></tr>
+                <tr><td><strong>Drummoyne Store</strong></td><td>HACCP (Store)</td><td>15 Apr 2023</td><td>14 Apr 2026</td><td><span class="conf hi">309</span></td><td><span class="badge b-auto">OK</span></td><td><span class="badge b-auto">Monitoring</span></td></tr>
+                <tr><td><strong>Sunshine Berries</strong></td><td>Organic (Supplier)</td><td>20 May 2023</td><td>19 May 2025</td><td><span class="conf lo">27</span></td><td><span class="badge b-review">EXPIRING</span></td><td><span class="badge b-review">Renewal Reminder Sent</span></td></tr>
+                <tr><td><strong>Costa Group</strong></td><td>Food Safety (FSQS)</td><td>12 Jan 2024</td><td>11 Jan 2027</td><td><span class="conf hi">676</span></td><td><span class="badge b-auto">OK</span></td><td><span class="badge b-auto">Monitoring</span></td></tr>
+                <tr><td><strong>Willoughby Store</strong></td><td>Animal Welfare (Source)</td><td>5 Sep 2023</td><td>4 Sep 2025</td><td><span class="conf lo">20</span></td><td><span class="badge b-review">EXPIRING</span></td><td><span class="badge b-review">Renewal Reminder Sent</span></td></tr>
+                <tr><td><strong>Miranda Store</strong></td><td>Food Safety (FSQS)</td><td>22 Nov 2022</td><td>21 Nov 2025</td><td><span class="conf hi">641</span></td><td><span class="badge b-auto">OK</span></td><td><span class="badge b-auto">Monitoring</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG -->
+      <div id="v-audit" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Audits Today</div><div class="card-val">152</div><div class="card-ch up">All completed</div></div>
+          <div class="card b"><div class="card-label">Items Flagged</div><div class="card-val">27</div><div class="card-ch up">15 corrected</div></div>
+          <div class="card y"><div class="card-label">Pass Rate</div><div class="card-val">98.2%</div><div class="card-ch up">Excellent compliance</div></div>
+          <div class="card g"><div class="card-label">Audit Runtime</div><div class="card-val">8.2h</div><div class="card-ch up">Across all stores</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">✓ Automated Audit Runs — Today</span></div>
+          <div class="panel-b">
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Morning Temperature Sweep (07:32 AM - 07:40 AM)</div><div class="row-m">Scope: All 283 cold chain points across 38 stores • Result: PASS (283/283 within tolerance) • Items flagged: None</div></div><span class="badge b-auto">Complete</span></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Expiry Date Scan (08:15 AM - 09:50 AM)</div><div class="row-m">Scope: All SKUs in rotation systems • Result: PASS (minor flags) • Items flagged: 12 dairy products approaching shelf life at Willoughby</div></div><span class="badge b-auto">Complete</span></div>
+            <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Hygiene Checklist — Store Audits (10:00 AM - 02:45 PM)</div><div class="row-m">Scope: 38 stores, 8 checkpoint categories each • Result: PASS with exceptions (37/38 stores) • Items flagged: Miranda store meat prep area — thermostat low (corrected), Redfern cold room alert</div></div><span class="badge b-review">Review</span></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Equipment Calibration Check (02:00 PM - 02:30 PM)</div><div class="row-m">Scope: All scales, thermometers, pH meters in stores & prep areas • Result: PASS • Items flagged: 1 meat prep thermometer at Brisbane CBD due for recalibration (scheduled Thu)</div></div><span class="badge b-auto">Complete</span></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Supplier Documentation Validation (03:00 PM - 03:45 PM)</div><div class="row-m">Scope: All active suppliers (12 primary, 18 secondary) • Result: PASS • Items flagged: Riverina Fruit Co. organic cert expired — flag for supplier team (noted above)</div></div><span class="badge b-auto">Complete</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📋 Flagged Items from Today's Audits</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Audit Type</th><th>Store / Entity</th><th>Item</th><th>Issue</th><th>Status</th><th>Resolution</th></tr></thead>
+              <tbody>
+                <tr><td>Expiry Scan</td><td>Willoughby</td><td>Danone Yoghurt</td><td>Shelf life 3 days</td><td><span class="badge b-auto">Corrected</span></td><td>Rotated to front, staff notified</td></tr>
+                <tr><td>Expiry Scan</td><td>Willoughby</td><td>Bega Cheese Block</td><td>Shelf life 5 days</td><td><span class="badge b-auto">Corrected</span></td><td>Rotated to front, staff notified</td></tr>
+                <tr><td>Hygiene Check</td><td>Miranda</td><td>Meat prep thermostat</td><td>Reading 3°C (should 1°C)</td><td><span class="badge b-auto">Corrected</span></td><td>Thermostat recalibrated by store manager</td></tr>
+                <tr><td>Equipment Cal</td><td>Brisbane CBD</td><td>Meat prep scale</td><td>Drift detected (±50g)</td><td><span class="badge b-review">Pending</span></td><td>Scheduled service Thursday 2 PM</td></tr>
+                <tr><td>Cert Validation</td><td>Riverina Fruit</td><td>Organic cert</td><td>Expired 14 Feb 2025</td><td><span class="badge b-alert">Critical</span></td><td>Awaiting resubmission from supplier</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- INCIDENT HISTORY -->
+      <div id="v-incidents" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid4">
+          <div class="card r"><div class="card-label">Total Incidents (Feb)</div><div class="card-val">8</div><div class="card-ch up">1 active today</div></div>
+          <div class="card g"><div class="card-label">Avg Response Time</div><div class="card-val">6.2m</div><div class="card-ch up">Agent-automated</div></div>
+          <div class="card b"><div class="card-label">Avg Resolution Time</div><div class="card-val">84m</div><div class="card-ch up">Within SLA</div></div>
+          <div class="card y"><div class="card-label">Critical Severity</div><div class="card-val">1</div><div class="card-ch dn">Redfern thermal drift</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">⚠️ Incident Log — February 2025</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Date/Time</th><th>Type</th><th>Store</th><th>Severity</th><th>Agent Response</th><th>Resolution</th><th>Time to Close</th></tr></thead>
+              <tbody>
+                <tr><td>15 Feb, 11:47 AM</td><td>Temperature Drift</td><td>Redfern</td><td><span class="badge b-alert">Critical</span></td><td>Auto-escalated to manager + facilities (5 min)</td><td>Maintenance scheduled 2 PM (In Progress)</td><td>—</td></tr>
+                <tr><td>14 Feb, 08:32 AM</td><td>Expired Certification</td><td>Riverina Fruit</td><td><span class="badge b-review">High</span></td><td>Auto-flag, supplier notified via email (2 min)</td><td>Awaiting resubmission (pending)</td><td>24+ hrs</td></tr>
+                <tr><td>13 Feb, 03:15 PM</td><td>Equipment Calibration</td><td>Brisbane CBD</td><td><span class="badge b-review">Medium</span></td><td>Auto-scheduled service, tagged for Thursday (1 min)</td><td>Service scheduled 13 Feb 2 PM</td><td>23 hrs</td></tr>
+                <tr><td>12 Feb, 02:10 PM</td><td>Stock Rotation Alert</td><td>Miranda</td><td><span class="badge b-review">Medium</span></td><td>Staff notified via store system + SMS (3 min)</td><td>Items rotated by 2:45 PM</td><td>35 min</td></tr>
+                <tr><td>11 Feb, 10:22 PM</td><td>Temperature Warning</td><td>Parramatta</td><td><span class="badge b-review">Medium</span></td><td>Escalated to maintenance, monitoring increased (4 min)</td><td>Freezer compressor cleaned, restored 11:15 PM</td><td>53 min</td></tr>
+                <tr><td>10 Feb, 06:30 AM</td><td>Certification Expiry (30 days)</td><td>Leichhardt</td><td><span class="badge b-review">Low</span></td><td>Renewal reminder sent to compliance team (1 min)</td><td>Renewal application submitted 11 Feb</td><td>25 hrs</td></tr>
+                <tr><td>9 Feb, 01:45 PM</td><td>Supplier Audit Alert</td><td>Sunshine Berries</td><td><span class="badge b-review">Low</span></td><td>Documentation request sent to supplier (2 min)</td><td>Updated docs received 9 Feb 4:30 PM</td><td>2.75 hrs</td></tr>
+                <tr><td>8 Feb, 04:20 PM</td><td>Hygiene Non-Compliance</td><td>Willoughby</td><td><span class="badge b-review">Medium</span></td><td>Store manager notified, corrective action checklist sent (3 min)</td><td>All items corrected by 5:15 PM, supervisor approval 8 Feb 5:30 PM</td><td>70 min</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+function showV(v){
+  ['overview','temperature','certifications','audit','incidents'].forEach(x=>{const e=document.getElementById('v-'+x);if(e)e.style.display=x===v?'block':'none'});
+  const titles={overview:'Quality Assurance & Compliance Dashboard',temperature:'Real-Time Temperature Monitoring',certifications:'Certification Tracker',audit:'Automated Audit Log',incidents:'Incident History'};
+  document.getElementById('vTitle').textContent=titles[v]||'Dashboard';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const idx={overview:0,temperature:1,certifications:2,audit:3,incidents:4};
+  document.querySelectorAll('.sidebar .nav-item')[idx[v]]?.classList.add('active');
+}
+</script>
+</body>
+</html>

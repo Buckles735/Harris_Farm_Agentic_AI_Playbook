@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harris Farm — Smart Demand Forecasting Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+  :root{--dg:#1B4332;--mg:#2D6A4F;--lg:#40916C;--ac:#52B788;--go:#D4A843;--ow:#F5F7F0;--cr:#EDF2E4;--dt:#1A1A2E;--mu:#5A6B5D;--cb:#FFF;--rd:#E74C3C;--or:#F39C12;--bl:#3498DB}
+  *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--ow);color:var(--dt);min-height:100vh}
+  .app{display:flex;height:100vh}.sidebar{width:250px;background:var(--dg);color:#fff;display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar-header{padding:18px;border-bottom:1px solid rgba(255,255,255,.1)}.sidebar-header h1{font-family:'Playfair Display',serif;font-size:16px}.sidebar-header .sub{font-size:10px;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .nav-section{padding:6px 18px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:14px}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.65);transition:.15s;border-left:3px solid transparent}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}.nav-item.active{background:rgba(82,183,136,.15);color:var(--ac);border-left-color:var(--ac);font-weight:500}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{background:#fff;border-bottom:1px solid #e0e5d8;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+  .topbar h2{font-family:'Playfair Display',serif;font-size:18px;color:var(--dg)}
+  .topbar-right{display:flex;gap:8px;align-items:center}
+  .btn{padding:6px 14px;border-radius:5px;border:none;cursor:pointer;font-size:11px;font-weight:500;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+  .btn-p{background:var(--ac);color:#fff}.btn-p:hover{background:var(--lg)}.btn-o{background:transparent;border:1px solid #c8d0c0;color:var(--mu)}.btn-o:hover{border-color:var(--ac)}
+  select.sel{padding:6px 10px;border:1px solid #c8d0c0;border-radius:5px;font-size:11px;background:#fff}
+  .content{flex:1;overflow-y:auto;padding:20px 24px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  .card{background:#fff;border-radius:10px;padding:16px;border:1px solid #e0e5d8;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .card.g::before{background:var(--ac)}.card.y::before{background:var(--go)}.card.r::before{background:var(--rd)}.card.b::before{background:var(--bl)}
+  .card-label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .card-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--dg)}
+  .card-ch{font-size:10px;margin-top:3px}.up{color:var(--ac)}.dn{color:var(--rd)}
+  .panel{background:#fff;border-radius:10px;border:1px solid #e0e5d8;overflow:hidden;margin-bottom:16px}
+  .panel-h{padding:12px 16px;border-bottom:1px solid #e0e5d8;display:flex;align-items:center;justify-content:space-between}
+  .panel-t{font-weight:600;font-size:13px;color:var(--dg)}.panel-b{padding:14px 16px}
+  .row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2ec}.row:last-child{border-bottom:none}
+  .dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}.dot.h{background:var(--rd)}.dot.m{background:var(--or)}.dot.l{background:var(--ac)}
+  .row-c{flex:1}.row-t{font-size:12px;font-weight:500}.row-m{font-size:10px;color:var(--mu);margin-top:2px}
+  .badge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:500;white-space:nowrap}
+  .b-auto{background:#e8f5e9;color:var(--lg)}.b-review{background:#fef3e0;color:var(--or)}.b-alert{background:#fde8e8;color:var(--rd)}
+  /* Charts */
+  .chart-container{height:200px;display:flex;align-items:flex-end;gap:6px;padding:10px 0}
+  .chart-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .chart-bar-stack{display:flex;gap:2px;align-items:flex-end;width:100%}
+  .chart-bar{border-radius:3px 3px 0 0;flex:1;display:flex;align-items:flex-start;justify-content:center;font-size:8px;color:#fff;padding-top:3px;min-width:16px}
+  .chart-bar.actual{background:var(--ac)}.chart-bar.predicted{background:var(--go)}.chart-bar.ordered{background:var(--bl)}
+  .chart-label{font-size:9px;color:var(--mu)}
+  .legend{display:flex;gap:14px;margin:8px 0;justify-content:center}.legend-i{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mu)}
+  .legend-d{width:8px;height:8px;border-radius:2px}
+  /* Forecast table */
+  .f-table{width:100%;border-collapse:collapse;font-size:11px}
+  .f-table th{text-align:left;padding:8px 10px;background:var(--cr);color:var(--dg);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+  .f-table td{padding:8px 10px;border-bottom:1px solid #f0f2ec}
+  .f-table tr:hover{background:#f8faf5}
+  .conf{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600}
+  .conf.hi{background:#e8f5e9;color:var(--lg)}.conf.med{background:#fef3e0;color:var(--or)}.conf.lo{background:#fde8e8;color:var(--rd)}
+  .trend{font-weight:600}.trend.up{color:var(--ac)}.trend.down{color:var(--rd)}
+  /* Weather strip */
+  .weather-strip{display:flex;gap:8px;margin-bottom:16px}
+  .weather-day{flex:1;background:#fff;border-radius:8px;padding:10px;text-align:center;border:1px solid #e0e5d8}
+  .weather-day .day{font-size:10px;color:var(--mu);font-weight:500}.weather-day .icon{font-size:22px;margin:4px 0}
+  .weather-day .temp{font-size:12px;font-weight:600;color:var(--dg)}.weather-day .impact{font-size:9px;color:var(--ac);margin-top:2px}
+  /* Alert */
+  .alert{background:linear-gradient(135deg,#e8f5e9 0%,#fef3e0 100%);border:1px solid #c8e6c9;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .alert-icon{font-size:18px}.alert-c h4{font-size:12px;color:var(--dt)}.alert-c p{font-size:11px;color:var(--mu);margin-top:2px}
+  .alert-a{margin-left:auto;display:flex;gap:6px}
+  .back-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);text-decoration:none;margin-bottom:12px}.back-link:hover{color:var(--dg)}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);margin-right:4px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @media(max-width:900px){.sidebar{display:none}.grid4,.grid3{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><h1>Harris Farm</h1><div class="sub">Demand Forecasting Agent</div></div>
+    <div class="nav-section">Forecasting</div>
+    <div class="nav-item active" onclick="showV('overview')">📊 Overview</div>
+    <div class="nav-item" onclick="showV('produce')">🥑 Fresh Produce</div>
+    <div class="nav-item" onclick="showV('signals')">📡 External Signals</div>
+    <div class="nav-item" onclick="showV('orders')">📦 Auto-Orders</div>
+    <div class="nav-section">Analysis</div>
+    <div class="nav-item" onclick="showV('accuracy')">🎯 Accuracy</div>
+    <div class="nav-item" onclick="showV('anomalies')">⚠️ Anomalies</div>
+    <div class="nav-section">Links</div>
+    <a href="/prototype.html" class="nav-item" style="text-decoration:none;color:inherit">🏠 Command Centre</a>
+    <a href="/" class="nav-item" style="text-decoration:none;color:inherit">← Back to Hub</a>
+    <div style="margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.4)"><span class="status-dot"></span> 1,247 SKU models active</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="vTitle">Demand Forecasting Dashboard</h2>
+      <div class="topbar-right">
+        <select class="sel" onchange="updateStore(this.value)"><option>All Stores (38)</option><option>Leichhardt</option><option>Drummoyne</option><option>Willoughby</option><option>Miranda</option><option>Redfern</option><option>Brisbane CBD</option></select>
+        <select class="sel"><option>Next 7 days</option><option>Next 14 days</option><option>Next 30 days</option></select>
+        <button class="btn btn-o" onclick="this.textContent='↻ Refreshing...';setTimeout(()=>this.textContent='↻ Refresh',800)">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div id="v-overview">
+        <div class="alert">
+          <span class="alert-icon">🥑</span>
+          <div class="alert-c"><h4>Demand Spike Detected: Avocados — +35% predicted next week</h4><p>Social media trend analysis detected viral avocado recipe content. Agent recommends increasing order by 420kg across Sydney stores.</p></div>
+          <div class="alert-a"><button class="btn btn-o" onclick="this.closest('.alert').style.display='none'">Dismiss</button><button class="btn btn-p" onclick="showV('anomalies')">Review</button></div>
+        </div>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Forecast Accuracy (7-day)</div><div class="card-val">94.2%</div><div class="card-ch up">↑ 3.1% vs. manual</div></div>
+          <div class="card y"><div class="card-label">Auto-Orders Generated Today</div><div class="card-val">156</div><div class="card-ch up">Across 38 stores</div></div>
+          <div class="card b"><div class="card-label">SKUs Being Forecast</div><div class="card-val">1,247</div><div class="card-ch up">Of 1,200 fresh produce</div></div>
+          <div class="card r"><div class="card-label">Anomalies Detected</div><div class="card-val">4</div><div class="card-ch dn">2 require review</div></div>
+        </div>
+
+        <div class="weather-strip">
+          <div class="weather-day"><div class="day">Mon</div><div class="icon">☀️</div><div class="temp">28°C</div><div class="impact">+8% salads</div></div>
+          <div class="weather-day"><div class="day">Tue</div><div class="icon">⛅</div><div class="temp">25°C</div><div class="impact">Normal</div></div>
+          <div class="weather-day"><div class="day">Wed</div><div class="icon">🌧️</div><div class="temp">19°C</div><div class="impact">+12% soups</div></div>
+          <div class="weather-day"><div class="day">Thu</div><div class="icon">🌧️</div><div class="temp">18°C</div><div class="impact">+15% comfort</div></div>
+          <div class="weather-day"><div class="day">Fri</div><div class="icon">⛅</div><div class="temp">22°C</div><div class="impact">Normal</div></div>
+          <div class="weather-day"><div class="day">Sat</div><div class="icon">☀️</div><div class="temp">30°C</div><div class="impact">+22% BBQ</div></div>
+          <div class="weather-day"><div class="day">Sun</div><div class="icon">☀️</div><div class="temp">31°C</div><div class="impact">+25% fruit</div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">📈 7-Day Demand Forecast vs. Actuals (Stone Fruit)</span></div>
+            <div class="panel-b">
+              <div class="chart-container">
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar actual" style="height:80px"></div><div class="chart-bar predicted" style="height:85px"></div></div><div class="chart-label">Mon</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar actual" style="height:95px"></div><div class="chart-bar predicted" style="height:90px"></div></div><div class="chart-label">Tue</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar actual" style="height:70px"></div><div class="chart-bar predicted" style="height:75px"></div></div><div class="chart-label">Wed</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar actual" style="height:88px"></div><div class="chart-bar predicted" style="height:82px"></div></div><div class="chart-label">Thu</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar actual" style="height:110px"></div><div class="chart-bar predicted" style="height:105px"></div></div><div class="chart-label">Fri</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar actual" style="height:150px"></div><div class="chart-bar predicted" style="height:145px"></div></div><div class="chart-label">Sat</div></div>
+                <div class="chart-bar-group"><div class="chart-bar-stack"><div class="chart-bar actual" style="height:130px"></div><div class="chart-bar predicted" style="height:140px"></div></div><div class="chart-label">Sun</div></div>
+              </div>
+              <div class="legend"><div class="legend-i"><div class="legend-d" style="background:var(--ac)"></div>Actual</div><div class="legend-i"><div class="legend-d" style="background:var(--go)"></div>Predicted</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🤖 Agent Activity Feed</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Auto-generated 34 purchase orders for tomorrow's deliveries</div><div class="row-m">5 min ago • All stores • $142K total value</div></div><span class="badge b-auto">Auto</span></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Adjusted mango orders +18% for Sat/Sun based on heatwave forecast</div><div class="row-m">23 min ago • Sydney metro stores</div></div><span class="badge b-auto">Auto</span></div>
+              <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">⚠️ Avocado demand spike detected — social media trend analysis</div><div class="row-m">1 hr ago • +35% predicted • Needs buyer approval</div></div><span class="badge b-review">Review</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Reduced lettuce order -12% at Willoughby (slow movement detected)</div><div class="row-m">2 hrs ago • Prevents ~$180 potential waste</div></div><span class="badge b-auto">Auto</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Berry forecast updated: QLD supply disruption factored into models</div><div class="row-m">3 hrs ago • Switched 30% allocation to NSW suppliers</div></div><span class="badge b-auto">Auto</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRESH PRODUCE -->
+      <div id="v-produce" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">Fruit Forecast Accuracy</div><div class="card-val">95.8%</div><div class="card-ch up">↑ 4.2% improvement</div></div>
+          <div class="card g"><div class="card-label">Vegetable Forecast Accuracy</div><div class="card-val">93.1%</div><div class="card-ch up">↑ 2.8% improvement</div></div>
+          <div class="card y"><div class="card-label">Herbs & Specialty</div><div class="card-val">89.4%</div><div class="card-ch up">Hardest to predict — seasonal</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🥑 Fresh Produce Forecast — Next 7 Days</span><select class="sel"><option>All Categories</option><option>Fruit</option><option>Vegetables</option><option>Herbs</option></select></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Product</th><th>Current Stock</th><th>Predicted Demand</th><th>Auto-Order</th><th>Confidence</th><th>Trend</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Avocados (Hass)</strong></td><td>840 kg</td><td>1,260 kg</td><td>+420 kg</td><td><span class="conf hi">92%</span></td><td><span class="trend up">↑ 35%</span></td><td><span class="badge b-review">Needs Approval</span></td></tr>
+                <tr><td><strong>Mangoes (KP)</strong></td><td>620 kg</td><td>735 kg</td><td>+115 kg</td><td><span class="conf hi">96%</span></td><td><span class="trend up">↑ 18%</span></td><td><span class="badge b-auto">Auto-Ordered</span></td></tr>
+                <tr><td><strong>Strawberries</strong></td><td>380 kg</td><td>320 kg</td><td>-60 kg</td><td><span class="conf med">78%</span></td><td><span class="trend down">↓ 8%</span></td><td><span class="badge b-auto">Adjusted</span></td></tr>
+                <tr><td><strong>Bananas</strong></td><td>1,450 kg</td><td>1,520 kg</td><td>+70 kg</td><td><span class="conf hi">98%</span></td><td><span class="trend up">↑ 3%</span></td><td><span class="badge b-auto">Auto-Ordered</span></td></tr>
+                <tr><td><strong>Lettuce (Iceberg)</strong></td><td>520 kg</td><td>460 kg</td><td>-60 kg</td><td><span class="conf hi">91%</span></td><td><span class="trend down">↓ 12%</span></td><td><span class="badge b-auto">Reduced</span></td></tr>
+                <tr><td><strong>Tomatoes</strong></td><td>890 kg</td><td>1,040 kg</td><td>+150 kg</td><td><span class="conf hi">94%</span></td><td><span class="trend up">↑ 15%</span></td><td><span class="badge b-auto">Auto-Ordered</span></td></tr>
+                <tr><td><strong>Blueberries</strong></td><td>180 kg</td><td>210 kg</td><td>+30 kg</td><td><span class="conf med">82%</span></td><td><span class="trend up">↑ 10%</span></td><td><span class="badge b-review">Supply Alert</span></td></tr>
+                <tr><td><strong>Broccoli</strong></td><td>340 kg</td><td>350 kg</td><td>+10 kg</td><td><span class="conf hi">97%</span></td><td>→ Stable</td><td><span class="badge b-auto">Auto-Ordered</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXTERNAL SIGNALS -->
+      <div id="v-signals" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🌤️ Weather Impact Models</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">Saturday heatwave (30°C+) → BBQ category +22%</div><div class="row-m">Sausages, steak, salads, watermelon, beer</div></div></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Wed-Thu rain → Soup ingredients +12%, root vegetables +8%</div><div class="row-m">Pumpkin, sweet potato, leeks, stock</div></div></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Overnight lows dropping → Stone fruit ripening slows</div><div class="row-m">Adjusted shelf-life models for nectarines, peaches</div></div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">📱 Social & Trend Signals</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">🥑 #AvocadoToast viral TikTok trend — 2.3M views in AU</div><div class="row-m">Predicted +35% avocado demand • Agent flagged for buyer review</div></div></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">🍓 "Strawberry shortcake" trending on Instagram AU</div><div class="row-m">Moderate signal • +8% strawberry & cream demand</div></div></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">🥗 "Clean eating February" health trend detected</div><div class="row-m">Sustained +5% leafy greens, quinoa, organic produce</div></div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">📅 Events & Calendar</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">Sydney Gay & Lesbian Mardi Gras — Sat 22 Feb</div><div class="row-m">+18% foot traffic at Surry Hills, Redfern, Darlinghurst stores</div></div></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">School returns — Week 3 underway</div><div class="row-m">Lunch box items stabilised: +5% above pre-school baseline</div></div></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Valentine's Day aftermath — declining chocolate/wine demand</div><div class="row-m">Normalising back to baseline over next 3 days</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUTO ORDERS -->
+      <div id="v-orders" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Orders Generated Today</div><div class="card-val">156</div><div class="card-ch up">$142K total value</div></div>
+          <div class="card y"><div class="card-label">Pending Approval</div><div class="card-val">3</div><div class="card-ch dn">Above confidence threshold</div></div>
+          <div class="card b"><div class="card-label">Supplier Confirmations</div><div class="card-val">148</div><div class="card-ch up">94.9% confirmed</div></div>
+          <div class="card g"><div class="card-label">Estimated Waste Saved</div><div class="card-val">$2.1K</div><div class="card-ch up">vs. manual ordering today</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📦 Today's Auto-Generated Purchase Orders</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>PO #</th><th>Supplier</th><th>Store</th><th>Items</th><th>Value</th><th>Delivery</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>PO-8847</td><td>Riverina Fruit Co.</td><td>All Metro</td><td>Stone fruit (340kg)</td><td>$4,250</td><td>Tomorrow 5am</td><td><span class="badge b-auto">Confirmed</span></td></tr>
+                <tr><td>PO-8848</td><td>Sydney Produce Mkt</td><td>Leichhardt</td><td>Mixed vegetables</td><td>$1,820</td><td>Tomorrow 4am</td><td><span class="badge b-auto">Confirmed</span></td></tr>
+                <tr><td>PO-8849</td><td>Sunshine Berries</td><td>All Stores</td><td>Blueberries (210kg)</td><td>$3,150</td><td>Tomorrow 6am</td><td><span class="badge b-review">Pending — supply alert</span></td></tr>
+                <tr><td>PO-8850</td><td>Costa Group</td><td>All Stores</td><td>Avocados (+420kg)</td><td>$5,460</td><td>Wed delivery</td><td><span class="badge b-review">Awaiting approval</span></td></tr>
+                <tr><td>PO-8851</td><td>Mulgowie Farming</td><td>Brisbane</td><td>Leafy greens</td><td>$890</td><td>Tomorrow 5am</td><td><span class="badge b-auto">Confirmed</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCURACY -->
+      <div id="v-accuracy" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">Overall Accuracy (30-day)</div><div class="card-val">94.2%</div><div class="card-ch up">↑ from 78% pre-agent</div></div>
+          <div class="card y"><div class="card-label">Overstock Reduction</div><div class="card-val">-27%</div><div class="card-ch up">Saving $48K/month</div></div>
+          <div class="card b"><div class="card-label">Stockout Reduction</div><div class="card-val">-38%</div><div class="card-ch up">Customer satisfaction ↑</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🎯 Accuracy by Category (Agent vs. Manual Baseline)</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Category</th><th>Agent Accuracy</th><th>Manual Baseline</th><th>Improvement</th><th>Models Active</th></tr></thead>
+              <tbody>
+                <tr><td>🍎 Fruit</td><td><strong>95.8%</strong></td><td>76.2%</td><td><span class="trend up">+19.6%</span></td><td>412</td></tr>
+                <tr><td>🥦 Vegetables</td><td><strong>93.1%</strong></td><td>79.4%</td><td><span class="trend up">+13.7%</span></td><td>389</td></tr>
+                <tr><td>🥩 Meat & Seafood</td><td><strong>96.2%</strong></td><td>84.1%</td><td><span class="trend up">+12.1%</span></td><td>186</td></tr>
+                <tr><td>🧀 Dairy & Cheese</td><td><strong>97.1%</strong></td><td>88.3%</td><td><span class="trend up">+8.8%</span></td><td>145</td></tr>
+                <tr><td>🌿 Herbs & Specialty</td><td><strong>89.4%</strong></td><td>65.8%</td><td><span class="trend up">+23.6%</span></td><td>115</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANOMALIES -->
+      <div id="v-anomalies" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">⚠️ Active Anomalies & Demand Spikes</span></div>
+          <div class="panel-b">
+            <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">🥑 Avocado demand spike: +35% above forecast model</div><div class="row-m">Cause: Viral TikTok trend (#AvocadoToast, 2.3M AU views) • Agent recommendation: Increase order by 420kg across Sydney stores • Estimated upside if captured: $8,200</div></div><span class="badge b-review">Approve / Reject</span></div>
+            <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">🫐 Blueberry supply constraint from QLD supplier</div><div class="row-m">Sunshine Berries reporting 15% crop loss • Agent auto-identified 3 alternates • Current order may be partially filled</div></div><span class="badge b-alert">Supply Risk</span></div>
+            <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">🍖 BBQ meat demand — Saturday heatwave signal</div><div class="row-m">Model predicts +22% sausages, +18% steak, +15% chicken • Auto-orders adjusted within normal parameters</div></div><span class="badge b-auto">Auto-Handled</span></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">🍫 Post-Valentine's confectionery decline faster than model expected</div><div class="row-m">Chocolate demand -24% vs. predicted -15% • Model weight recalibrated for next year</div></div><span class="badge b-auto">Learning</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+function showV(v){
+  ['overview','produce','signals','orders','accuracy','anomalies'].forEach(x=>{const e=document.getElementById('v-'+x);if(e)e.style.display=x===v?'block':'none'});
+  const titles={overview:'Demand Forecasting Dashboard',produce:'Fresh Produce Forecasts',signals:'External Signal Analysis',orders:'Auto-Generated Orders',accuracy:'Forecast Accuracy',anomalies:'Anomalies & Demand Spikes'};
+  document.getElementById('vTitle').textContent=titles[v]||'Dashboard';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const idx={overview:0,produce:1,signals:2,orders:3,accuracy:4,anomalies:5};
+  document.querySelectorAll('.sidebar .nav-item')[idx[v]]?.classList.add('active');
+}
+</script>
+</body>
+</html>

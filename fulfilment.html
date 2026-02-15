@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harris Farm — Amazon & Online Fulfilment Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+  :root{--dg:#1B4332;--mg:#2D6A4F;--lg:#40916C;--ac:#52B788;--go:#D4A843;--ow:#F5F7F0;--cr:#EDF2E4;--dt:#1A1A2E;--mu:#5A6B5D;--cb:#FFF;--rd:#E74C3C;--or:#F39C12;--bl:#3498DB}
+  *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--ow);color:var(--dt);min-height:100vh}
+  .app{display:flex;height:100vh}.sidebar{width:250px;background:var(--dg);color:#fff;display:flex;flex-direction:column;flex-shrink:0}
+  .sidebar-header{padding:18px;border-bottom:1px solid rgba(255,255,255,.1)}.sidebar-header h1{font-family:'Playfair Display',serif;font-size:16px}.sidebar-header .sub{font-size:10px;color:var(--ac);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .nav-section{padding:6px 18px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:14px}
+  .nav-item{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.65);transition:.15s;border-left:3px solid transparent}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}.nav-item.active{background:rgba(82,183,136,.15);color:var(--ac);border-left-color:var(--ac);font-weight:500}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{background:#fff;border-bottom:1px solid #e0e5d8;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+  .topbar h2{font-family:'Playfair Display',serif;font-size:18px;color:var(--dg)}
+  .topbar-right{display:flex;gap:8px;align-items:center}
+  .btn{padding:6px 14px;border-radius:5px;border:none;cursor:pointer;font-size:11px;font-weight:500;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+  .btn-p{background:var(--ac);color:#fff}.btn-p:hover{background:var(--lg)}.btn-o{background:transparent;border:1px solid #c8d0c0;color:var(--mu)}.btn-o:hover{border-color:var(--ac)}
+  select.sel{padding:6px 10px;border:1px solid #c8d0c0;border-radius:5px;font-size:11px;background:#fff}
+  .content{flex:1;overflow-y:auto;padding:20px 24px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  .card{background:#fff;border-radius:10px;padding:16px;border:1px solid #e0e5d8;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .card.g::before{background:var(--ac)}.card.y::before{background:var(--go)}.card.r::before{background:var(--rd)}.card.b::before{background:var(--bl)}
+  .card-label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .card-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--dg)}
+  .card-ch{font-size:10px;margin-top:3px}.up{color:var(--ac)}.dn{color:var(--rd)}
+  .panel{background:#fff;border-radius:10px;border:1px solid #e0e5d8;overflow:hidden;margin-bottom:16px}
+  .panel-h{padding:12px 16px;border-bottom:1px solid #e0e5d8;display:flex;align-items:center;justify-content:space-between}
+  .panel-t{font-weight:600;font-size:13px;color:var(--dg)}.panel-b{padding:14px 16px}
+  .row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2ec}.row:last-child{border-bottom:none}
+  .dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}.dot.h{background:var(--rd)}.dot.m{background:var(--or)}.dot.l{background:var(--ac)}
+  .row-c{flex:1}.row-t{font-size:12px;font-weight:500}.row-m{font-size:10px;color:var(--mu);margin-top:2px}
+  .badge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:500;white-space:nowrap}
+  .b-auto{background:#e8f5e9;color:var(--lg)}.b-review{background:#fef3e0;color:var(--or)}.b-alert{background:#fde8e8;color:var(--rd)}
+  /* Tables */
+  .f-table{width:100%;border-collapse:collapse;font-size:11px}
+  .f-table th{text-align:left;padding:8px 10px;background:var(--cr);color:var(--dg);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+  .f-table td{padding:8px 10px;border-bottom:1px solid #f0f2ec}
+  .f-table tr:hover{background:#f8faf5}
+  /* Alert */
+  .alert{background:linear-gradient(135deg,#e8f5e9 0%,#fef3e0 100%);border:1px solid #c8e6c9;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .alert-icon{font-size:18px}.alert-c h4{font-size:12px;color:var(--dt)}.alert-c p{font-size:11px;color:var(--mu);margin-top:2px}
+  .alert-a{margin-left:auto;display:flex;gap:6px}
+  .back-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);text-decoration:none;margin-bottom:12px}.back-link:hover{color:var(--dg)}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);margin-right:4px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @media(max-width:900px){.sidebar{display:none}.grid4,.grid3{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><h1>Harris Farm</h1><div class="sub">Fulfilment Agent</div></div>
+    <div class="nav-section">Operations</div>
+    <div class="nav-item active" onclick="showV('overview')">📊 Overview</div>
+    <div class="nav-item" onclick="showV('orders')">📦 Live Orders</div>
+    <div class="nav-item" onclick="showV('capacity')">⚡ Capacity Planner</div>
+    <div class="nav-item" onclick="showV('picking')">🎯 Pick Optimisation</div>
+    <div class="nav-item" onclick="showV('partners')">🚗 Delivery Partners</div>
+    <div class="nav-section">Links</div>
+    <a href="/prototype.html" class="nav-item" style="text-decoration:none;color:inherit">🏠 Command Centre</a>
+    <a href="/" class="nav-item" style="text-decoration:none;color:inherit">← Back to Hub</a>
+    <div style="margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.4)"><span class="status-dot"></span> 287 orders tracked across 80 suburbs</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="vTitle">Fulfilment Dashboard</h2>
+      <div class="topbar-right">
+        <select class="sel" onchange="updateStore(this.value)"><option>All Stores (6)</option><option>Leichhardt</option><option>Drummoyne</option><option>Willoughby</option><option>Miranda</option><option>Redfern</option><option>Brisbane CBD</option></select>
+        <button class="btn btn-o" onclick="this.textContent='↻ Refreshing...';setTimeout(()=>this.textContent='↻ Refresh',800)">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div id="v-overview">
+        <div class="alert">
+          <span class="alert-icon">⚠️</span>
+          <div class="alert-c"><h4>Capacity Alert: Leichhardt at 92% — Overflow Recommended</h4><p>Leichhardt hub approaching max capacity. Agent recommends activating Drummoyne backup for next 2 hours to prevent bottlenecks.</p></div>
+          <div class="alert-a"><button class="btn btn-o" onclick="this.closest('.alert').style.display='none'">Dismiss</button><button class="btn btn-p" onclick="showV('capacity')">Review</button></div>
+        </div>
+        <div class="grid4">
+          <div class="card g"><div class="card-label">Orders Today</div><div class="card-val">287</div><div class="card-ch up">↑ 12% vs. avg</div></div>
+          <div class="card y"><div class="card-label">Avg Fulfilment Time</div><div class="card-val">47 min</div><div class="card-ch up">vs. 52 min baseline</div></div>
+          <div class="card b"><div class="card-label">Picking Accuracy</div><div class="card-val">99.3%</div><div class="card-ch up">↑ 0.8% vs. last week</div></div>
+          <div class="card r"><div class="card-label">Capacity Utilisation</div><div class="card-val">92%</div><div class="card-ch dn">⚠️ Approaching limit</div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">🎯 Real-Time Activity Feed</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Order #A8471 dispatched to Camden via Flex driver</div><div class="row-m">15 sec ago • ETA: 2:45pm • 4 items packed</div></div><span class="badge b-auto">Dispatched</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Picking completed for Order #A8469 (Surry Hills)</div><div class="row-m">3 min ago • Packer assigned: Sarah M. • 12 items</div></div><span class="badge b-auto">Packed</span></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Driver handover: Flex partner #294 collected 8 orders at Leichhardt</div><div class="row-m">7 min ago • Total weight: 28.4 kg • Coverage: Inner west routes</div></div><span class="badge b-review">Active</span></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Order #A8467 entering pick phase (Willoughby hub)</div><div class="row-m">9 min ago • 6 items • Picker assigned: John K. • Optimised route activated</div></div><span class="badge b-auto">Picking</span></div>
+              <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t">Capacity spike detected: Leichhardt hub at 92% with influx from online channel</div><div class="row-m">12 min ago • Agent recommendation: Activate Drummoyne backup hub immediately • Overflow routing enabled</div></div><span class="badge b-alert">Alert</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><span class="panel-t">📡 Agent Performance</span></div>
+            <div class="panel-b">
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Optimised pick paths calculated today</div><div class="row-m">287 orders • Average path efficiency: +18.3% vs. manual routing</div></div></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Delivery partner assignments optimised</div><div class="row-m">Matched 156 orders to nearest Flex drivers within 2-hour window</div></div></div>
+              <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Capacity predictions generated</div><div class="row-m">Foresaw Leichhardt overflow 1.5 hrs in advance • Recommended Drummoyne activation</div></div></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Error prevention interventions</div><div class="row-m">Flagged 3 potential mis-picks (barcode mismatch) • All prevented before shipment</div></div></div>
+              <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">January 2026 Amazon partnership milestone</div><div class="row-m">2-hour delivery windows achieved across 80 Sydney suburbs</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE ORDERS -->
+      <div id="v-orders" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">📦 Live Order Tracker (Real-Time)</span><select class="sel"><option>All Orders</option><option>Picking</option><option>Packed</option><option>Dispatched</option></select></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Order #</th><th>Customer (Suburb)</th><th>Items</th><th>Store</th><th>Picker</th><th>Status</th><th>ETA</th></tr></thead>
+              <tbody>
+                <tr><td>#A8471</td><td>Sarah K. (Camden)</td><td>4</td><td>Leichhardt</td><td>Mike T.</td><td><span class="badge b-auto">Dispatched</span></td><td>2:45 pm</td></tr>
+                <tr><td>#A8469</td><td>James L. (Surry Hills)</td><td>12</td><td>Redfern</td><td>Sarah M.</td><td><span class="badge b-auto">Packed</span></td><td>1:20 pm</td></tr>
+                <tr><td>#A8467</td><td>Emma R. (Neutral Bay)</td><td>6</td><td>Willoughby</td><td>John K.</td><td><span class="badge b-review">Picking</span></td><td>1:35 pm</td></tr>
+                <tr><td>#A8465</td><td>David C. (Earlwood)</td><td>8</td><td>Leichhardt</td><td>Alex P.</td><td><span class="badge b-review">Picking</span></td><td>1:50 pm</td></tr>
+                <tr><td>#A8463</td><td>Lisa M. (Newtown)</td><td>5</td><td>Redfern</td><td>Sam H.</td><td><span class="badge b-auto">Packed</span></td><td>2:05 pm</td></tr>
+                <tr><td>#A8461</td><td>Michael W. (Woollahra)</td><td>9</td><td>Drummoyne</td><td>Tony D.</td><td><span class="badge b-review">Picking</span></td><td>2:15 pm</td></tr>
+                <tr><td>#A8459</td><td>Patricia G. (Ashfield)</td><td>7</td><td>Leichhardt</td><td>Rose K.</td><td><span class="badge b-auto">Packed</span></td><td>1:55 pm</td></tr>
+                <tr><td>#A8457</td><td>Robert T. (Coogee)</td><td>11</td><td>Drummoyne</td><td>Marco L.</td><td><span class="badge b-review">Picking</span></td><td>2:30 pm</td></tr>
+                <tr><td>#A8455</td><td>Jennifer H. (Marrickville)</td><td>6</td><td>Redfern</td><td>Lucy B.</td><td><span class="badge b-auto">Packed</span></td><td>2:20 pm</td></tr>
+                <tr><td>#A8453</td><td>Kevin S. (Cronulla)</td><td>10</td><td>Miranda</td><td>Chris V.</td><td><span class="badge b-review">Picking</span></td><td>2:50 pm</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAPACITY PLANNER -->
+      <div id="v-capacity" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card r"><div class="card-label">Leichhardt Hub</div><div class="card-val">92%</div><div class="card-ch dn">Critical — Overflow imminent</div></div>
+          <div class="card y"><div class="card-label">Redfern Hub</div><div class="card-val">76%</div><div class="card-ch up">Can absorb 24 more orders</div></div>
+          <div class="card g"><div class="card-label">Drummoyne Hub</div><div class="card-val">48%</div><div class="card-ch up">Backup capacity available</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">⚡ Store Capacity Planner (Live + 2 Hour Forecast)</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Store / Hub</th><th>Current Orders</th><th>Max Capacity</th><th>Utilisation %</th><th>Predicted +2hr</th><th>Agent Recommendation</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Leichhardt</strong></td><td>68</td><td>75</td><td><strong>92%</strong></td><td>+12 orders (overflow)</td><td><span class="badge b-alert">ACTIVATE DRUMMOYNE BACKUP</span></td></tr>
+                <tr><td><strong>Redfern</strong></td><td>45</td><td>60</td><td>76%</td><td>+8 orders (manageable)</td><td><span class="badge b-auto">Monitor</span></td></tr>
+                <tr><td><strong>Drummoyne</strong></td><td>24</td><td>50</td><td>48%</td><td>+6 orders if activated</td><td><span class="badge b-auto">Ready for overflow</span></td></tr>
+                <tr><td><strong>Willoughby</strong></td><td>38</td><td>55</td><td>69%</td><td>+5 orders (stable)</td><td><span class="badge b-auto">Operating normally</span></td></tr>
+                <tr><td><strong>Miranda</strong></td><td>22</td><td>40</td><td>55%</td><td>+4 orders (stable)</td><td><span class="badge b-auto">Operating normally</span></td></tr>
+                <tr><td><strong>Brisbane CBD</strong></td><td>19</td><td>35</td><td>54%</td><td>+2 orders (stable)</td><td><span class="badge b-auto">Operating normally</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🤖 Agent Overflow Recommendation</span></div>
+          <div class="panel-b">
+            <div class="row"><div class="dot h"></div><div class="row-c"><div class="row-t"><strong>Action: Activate Leichhardt → Drummoyne Overflow Routing (Next 2 Hours)</strong></div><div class="row-m">Leichhardt hub at 92% capacity with 12 new orders predicted in next 2 hours. Drummoyne hub has 26 available slots and is operational.</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Expected impact: Leichhardt drops to 78%, Drummoyne rises to 60%</div><div class="row-m">Delivery times remain within 2-hour SLA across both hubs. Flex driver assignments automatically adjusted.</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Cost optimisation: Overflow routing saves ~$340 in emergency staff hours vs. overtime</div><div class="row-m">Distance penalty minimal: Drummoyne covers northern inner-west routes (avg +3min delivery).</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PICK OPTIMISATION -->
+      <div id="v-picking" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">Avg Pick Time Reduction</div><div class="card-val">18.3%</div><div class="card-ch up">vs. standard path</div></div>
+          <div class="card b"><div class="card-label">Total Time Saved Today</div><div class="card-val">42.5 hrs</div><div class="card-ch up">Cumulative picking time</div></div>
+          <div class="card y"><div class="card-label">Pick Error Reduction</div><div class="card-val">-14%</div><div class="card-ch up">vs. manual baseline</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🎯 Pick Path Optimisation — Recent Picks</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Order #</th><th>Items</th><th>Optimised Route</th><th>Time (Optimised)</th><th>Time (Standard)</th><th>Saved</th><th>Picker</th></tr></thead>
+              <tbody>
+                <tr><td>#A8471</td><td>4 items</td><td>Aisle C→Fridges→Registers</td><td>2.8 min</td><td>4.1 min</td><td>1.3 min (32%)</td><td>Mike T.</td></tr>
+                <tr><td>#A8469</td><td>12 items</td><td>Aisle A→B→C→Fridges→Produce</td><td>6.2 min</td><td>8.9 min</td><td>2.7 min (30%)</td><td>Sarah M.</td></tr>
+                <tr><td>#A8467</td><td>6 items</td><td>Aisle B→Produce→Registers</td><td>3.4 min</td><td>4.8 min</td><td>1.4 min (29%)</td><td>John K.</td></tr>
+                <tr><td>#A8465</td><td>8 items</td><td>Produce→Fridges→Aisle C→Registers</td><td>4.1 min</td><td>6.2 min</td><td>2.1 min (34%)</td><td>Alex P.</td></tr>
+                <tr><td>#A8463</td><td>5 items</td><td>Aisle C→Registers</td><td>2.2 min</td><td>3.1 min</td><td>0.9 min (29%)</td><td>Sam H.</td></tr>
+                <tr><td>#A8461</td><td>9 items</td><td>Produce→Aisle A→Fridges→Aisle C</td><td>5.3 min</td><td>7.6 min</td><td>2.3 min (30%)</td><td>Tony D.</td></tr>
+                <tr><td>#A8459</td><td>7 items</td><td>Aisle B→C→Fridges→Registers</td><td>4.0 min</td><td>5.8 min</td><td>1.8 min (31%)</td><td>Rose K.</td></tr>
+                <tr><td>#A8457</td><td>11 items</td><td>Aisle A→Produce→B→Fridges→C</td><td>6.8 min</td><td>9.2 min</td><td>2.4 min (26%)</td><td>Marco L.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🔬 Optimisation Algorithm Details</span></div>
+          <div class="panel-b">
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Route clustering: Agent groups nearby items to minimise backtracking</div><div class="row-m">Real-time shelf location data + picking speed analysis from 2,400+ orders</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Error prevention: Pick confirmation barcode scans matched against order manifest</div><div class="row-m">3 potential mis-picks prevented today via AI image recognition (98.7% confidence)</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Workload balancing: Orders distributed based on picker specialisation & current load</div><div class="row-m">Reduces fatigue-related errors • Faster pickers assigned to complex multi-item orders</div></div></div>
+            <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Continuous learning: Algorithm recalibrates after each pick from anonymised feedback</div><div class="row-m">Pick time variance reduced 14% in last 3 weeks via model improvements</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DELIVERY PARTNERS -->
+      <div id="v-partners" style="display:none">
+        <a href="#" class="back-link" onclick="showV('overview');return false">← Back to overview</a>
+        <div class="grid3">
+          <div class="card g"><div class="card-label">Active Flex Drivers</div><div class="card-val">34</div><div class="card-ch up">Covering 80 Sydney suburbs</div></div>
+          <div class="card b"><div class="card-label">Orders in Transit</div><div class="card-val">156</div><div class="card-ch up">All within 2-hour window</div></div>
+          <div class="card y"><div class="card-label">Avg Delivery Time</div><div class="card-val">45 min</div><div class="card-ch up">vs. 50 min target</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🚗 Amazon Flex Driver Coordination Dashboard</span></div>
+          <div class="panel-b">
+            <table class="f-table">
+              <thead><tr><th>Driver ID</th><th>Status</th><th>Orders Assigned</th><th>In-Transit</th><th>Coverage Area</th><th>ETA (Next Drop)</th></tr></thead>
+              <tbody>
+                <tr><td>FLX-#294</td><td><span class="badge b-auto">Active</span></td><td>8</td><td>5</td><td>Leichhardt, Marrickville, Newtown</td><td>2:35 pm</td></tr>
+                <tr><td>FLX-#287</td><td><span class="badge b-auto">Active</span></td><td>6</td><td>3</td><td>Surry Hills, Redfern, Waterloo</td><td>2:15 pm</td></tr>
+                <tr><td>FLX-#301</td><td><span class="badge b-auto">Active</span></td><td>7</td><td>4</td><td>Coogee, Clovelly, Maroubra</td><td>2:50 pm</td></tr>
+                <tr><td>FLX-#265</td><td><span class="badge b-auto">Active</span></td><td>9</td><td>6</td><td>Drummoyne, Neutral Bay, Cremorne</td><td>2:40 pm</td></tr>
+                <tr><td>FLX-#312</td><td><span class="badge b-auto">Active</span></td><td>5</td><td>2</td><td>Balmain, Birchgrove, Rozelle</td><td>2:25 pm</td></tr>
+                <tr><td>FLX-#289</td><td><span class="badge b-review">Returning</span></td><td>6</td><td>1</td><td>Willoughby, Chatswood, Northbridge</td><td>2:55 pm</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🗺️ Suburb Coverage Map (Agent Matched Deliveries)</span></div>
+          <div class="panel-b">
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Inner West: Leichhardt, Marrickville, Newtown, Ashfield, Annandale (28 orders)</div><div class="row-m">Drivers FLX-#294, FLX-#312 • Avg delivery: 38 min</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Innercity East: Surry Hills, Redfern, Waterloo, Woolloomooloo, Darlinghurst (32 orders)</div><div class="row-m">Drivers FLX-#287, FLX-#265 • Avg delivery: 42 min</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Eastern Beaches: Coogee, Clovelly, Maroubra, Randwick, Kensington (24 orders)</div><div class="row-m">Driver FLX-#301 • Avg delivery: 44 min</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Lower North: Drummoyne, Neutral Bay, Cremorne, Mosman, Neutral Bay (28 orders)</div><div class="row-m">Driver FLX-#265 • Avg delivery: 40 min</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">South: Miranda, Cronulla, Woollahra, Watsons Bay, Rose Bay (20 orders)</div><div class="row-m">Driver FLX-#289 • Avg delivery: 48 min</div></div></div>
+            <div class="row"><div class="dot m"></div><div class="row-c"><div class="row-t">Northern Suburbs: Willoughby, Chatswood, Northbridge, Pennant Hills, Thornleigh (24 orders)</div><div class="row-m">Driver FLX-#289 • Avg delivery: 52 min</div></div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="panel-t">🤖 Agent Driver Matching Algorithm</span></div>
+          <div class="panel-b">
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Nearest-available driver assignment: Orders matched to Flex driver within 5km radius</div><div class="row-m">Ensures 2-hour delivery window maintained across 80 suburbs (January 2026 Amazon partnership)</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Dynamic route clustering: Multiple orders grouped for efficient suburb-level delivery</div><div class="row-m">FLX-#294 currently assigned 8 inner-west orders across 3 suburbs • ETA staggered by delivery time</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Real-time traffic integration: Route predictions adjusted for current Sydney traffic patterns</div><div class="row-m">10% faster average delivery times vs. static routing (45 min vs. 50 min baseline)</div></div></div>
+            <div class="row"><div class="dot l"></div><div class="row-c"><div class="row-t">Driver capacity optimisation: Orders assigned based on vehicle capacity & current load</div><div class="row-m">Prevents overloading • Balances workload across 34 active drivers • Reduces cancellations</div></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+function showV(v){
+  ['overview','orders','capacity','picking','partners'].forEach(x=>{const e=document.getElementById('v-'+x);if(e)e.style.display=x===v?'block':'none'});
+  const titles={overview:'Fulfilment Dashboard',orders:'Live Order Tracker',capacity:'Capacity Planner',picking:'Pick Optimisation',partners:'Delivery Partner Coordination'};
+  document.getElementById('vTitle').textContent=titles[v]||'Dashboard';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const idx={overview:0,orders:1,capacity:2,picking:3,partners:4};
+  document.querySelectorAll('.sidebar .nav-item')[idx[v]]?.classList.add('active');
+}
+</script>
+</body>
+</html>
